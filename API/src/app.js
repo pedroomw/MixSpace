@@ -9,10 +9,6 @@ app.get('/', (req, res) => {
   res.json({ mensaje: 'API funcionando' });
 });
 
-app.post("/")
-
-app.use()
-
 app.listen(PORT, () => {
-  console.log(`API MixSpace inicializada YA en http://localhost:${PORT}`);
+  console.log(`API MixSpace inicializada en http://localhost:${PORT}`);
 });

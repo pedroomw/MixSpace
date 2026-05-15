@@ -25,3 +25,6 @@ build/
 # Sistema
 .DS_Store
 Thumbs.db
+
+#Archivos grandes
+uploads/
