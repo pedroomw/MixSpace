@@ -1,16 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 import dotenv from 'dotenv'
-dotenv.config({path: 'C:\\Users\\48793643\\MixSpace\\API\\.env'})
+dotenv.config({path: "./src/.env"})
 
 const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY 
-
-console.log('SUPABASE_URL=', process.env.SUPABASE_URL)
-console.log('SUPABASE_SERVICE_KEY=', process.env.SUPABASE_SERVICE_KEY)
-console.log('SUPABASE_ANON_KEY=', process.env.SUPABASE_ANON_KEY)
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY 
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_KEY (or SUPABASE_ANON_KEY) must be set in environment')
+  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY) must be set in environment')
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey)

@@ -2,7 +2,8 @@ import express from "express"
 import filesRouter from './routes/files.js'
 
 const app = express();
-const PORT = process.env.PORT;
+console.log(process.env)
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
