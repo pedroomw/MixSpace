@@ -11,7 +11,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-export async function uploadFile({ bucket = 'uploads', filePath, fileBuffer, contentType }) {
+export async function uploadFile({ bucket, filePath, fileBuffer, contentType }) {
   const { data, error } = await supabase.storage.from(bucket).upload(filePath, fileBuffer, { contentType, upsert: true })
   if (error) throw error
 
