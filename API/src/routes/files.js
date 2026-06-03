@@ -2,7 +2,7 @@ import path from "path"
 import fs from "fs"
 import { Router } from "express"
 import multer from 'multer'
-import { uploadFile } from '../services/supabaseStorage.js'
+import { uploadMetadata } from '../services/supabaseDatabase.js'
 
 const router = Router()
 const storage = multer.diskStorage({
@@ -23,11 +23,10 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 	try {
 		if (!req.file) return res.status(400).json({ error: 'No file provided (field name: file)' })
 
-		const result = await uploadFile({
-			bucket: process.env.SUPABASE_BUCKET,
-			filePath: filePath,
-			fileBuffer: req.file.buffer,
-			contentType: req.file.mimetype
+		const result = await uploadMetadata({
+			filename, 
+			description, 
+			projectID
 		})
 
 		res.json({ ok: true, result })
