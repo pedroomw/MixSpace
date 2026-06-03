@@ -13,6 +13,8 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 export async function uploadMetadata({ filename, description, projectID }) {
+  console.log("Llego hasta la subidademetadata")
+
   const{data, error} = await supabase
     .from('Versions')
     .insert([{filename: filename, description: description, project_id: projectID}])
