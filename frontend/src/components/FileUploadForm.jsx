@@ -17,6 +17,7 @@ function FileUploadForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('idle'); // 'idle' | 'uploading' | 'success' | 'error'
   const [statusMessage, setStatusMessage] = useState('');
+  const [uploadAttempted, setUploadAttempted] = useState(false);
 
   // Handle file selection
   const handleFileChange = (file) => {
@@ -77,6 +78,7 @@ function FileUploadForm() {
 
     // Set uploading state
     setIsUploading(true);
+    setUploadAttempted(true);
     setUploadStatus('uploading');
     setStatusMessage('Subiendo archivo...');
 
@@ -120,6 +122,7 @@ function FileUploadForm() {
     setProjectID('');
     setUploadStatus('idle');
     setStatusMessage('');
+    setUploadAttempted(false);
   };
 
   // Retry upload (keeps file and metadata)
@@ -175,17 +178,6 @@ function FileUploadForm() {
             disabled={isUploading}
             isUploading={isUploading}
           />
-          
-          {uploadStatus === 'error' && (
-            <button
-              type="button"
-              className="retry-button"
-              onClick={handleRetry}
-              disabled={isUploading}
-            >
-              Reintentar
-            </button>
-          )}
         </div>
 
         <StatusMessage status={uploadStatus} message={statusMessage} />

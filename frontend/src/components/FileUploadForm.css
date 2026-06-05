@@ -1,34 +1,31 @@
 .upload-form-container {
-  max-width: 700px;
+  width: 100%;
+  max-width: 520px;
   margin: 0 auto;
-  padding: var(--spacing-xl);
+  padding: var(--spacing-lg);
 }
 
 .upload-form {
   background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  border-radius: 14px;
+  padding: 24px 24px;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
 }
 
 .form-title {
-  font-size: var(--font-size-xl);
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-md) 0;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin: 0 0 4px 0;
 }
 
 .form-actions {
   display: flex;
   gap: var(--spacing-md);
   flex-wrap: wrap;
-  margin-top: var(--spacing-md);
+  margin-top: var(--spacing-sm);
 }
 
 .retry-button {
@@ -39,7 +36,7 @@
   min-height: 44px;
   background: transparent;
   color: var(--text-secondary);
-  border: 2px solid var(--bg-input-alt);
+  border: 1px solid var(--bg-input-alt);
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   font-weight: 500;
@@ -63,7 +60,6 @@
   .upload-form-container {
     padding: var(--spacing-lg);
   }
-
   .upload-form {
     padding: var(--spacing-lg);
   }
@@ -73,15 +69,12 @@
   .upload-form-container {
     padding: var(--spacing-md);
   }
-
   .upload-form {
     padding: var(--spacing-md);
   }
-
   .form-actions {
     flex-direction: column;
   }
-
   .retry-button {
     width: 100%;
   }

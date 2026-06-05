@@ -13,13 +13,6 @@ function FileSelector({ selectedFile, onChange, disabled }) {
       return;
     }
 
-    // Validate file extension
-    if (!file.name.toLowerCase().endsWith('.flp')) {
-      setError('Solo se aceptan archivos .flp');
-      onChange(null);
-      return;
-    }
-
     // Validate file size (500 MB = 500 * 1024 * 1024 bytes)
     const maxSize = 500 * 1024 * 1024;
     if (file.size > maxSize) {
@@ -50,7 +43,6 @@ function FileSelector({ selectedFile, onChange, disabled }) {
         <input
           id="file-input"
           type="file"
-          accept=".flp"
           onChange={handleFileChange}
           disabled={disabled}
           className="file-input"
@@ -59,7 +51,7 @@ function FileSelector({ selectedFile, onChange, disabled }) {
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10 3.5a.75.75 0 01.75.75v5.25H16a.75.75 0 010 1.5h-5.25V16a.75.75 0 01-1.5 0v-5.25H4a.75.75 0 010-1.5h5.25V4.25A.75.75 0 0110 3.5z" />
           </svg>
-          Elegir archivo .flp
+          Elegir archivo
         </label>
         
         {selectedFile && (

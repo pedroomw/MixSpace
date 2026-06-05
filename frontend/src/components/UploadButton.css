@@ -3,29 +3,26 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-xl);
-  min-height: 44px;
-  min-width: 44px;
-  background: var(--accent-primary);
+  padding: 10px var(--spacing-xl);
+  min-height: 40px;
+  width: 100%;
+  background: var(--accent-secondary);
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
+  font-size: 14px;
   font-weight: 600;
   font-family: var(--font-family);
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
 }
 
 .upload-button:hover:not(:disabled) {
   background: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
 }
 
 .upload-button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.99);
 }
 
 .upload-button:disabled {
@@ -46,11 +43,5 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 480px) {
-  .upload-button {
-    width: 100%;
   }
 }

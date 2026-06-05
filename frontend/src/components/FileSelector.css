@@ -1,19 +1,19 @@
 .file-selector {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 4px;
 }
 
 .file-selector-label {
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
+  font-size: 13px;
   font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .file-input-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 6px;
 }
 
 .file-input {
@@ -24,27 +24,27 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
-  min-height: 44px;
-  min-width: 44px;
+  padding: 8px 12px;
+  min-height: 36px;
   background: var(--bg-input);
-  color: var(--text-primary);
-  border: 2px solid var(--bg-input-alt);
+  color: var(--text-secondary);
+  border: 1px solid var(--bg-input-alt);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
+  font-size: 13px;
   font-family: var(--font-family);
   cursor: pointer;
   transition: all var(--transition-fast);
   user-select: none;
+  width: 100%;
 }
 
 .file-input-button:hover {
-  background: var(--bg-input-alt);
   border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .file-input-button:active {
-  transform: scale(0.98);
+  transform: scale(0.99);
 }
 
 .file-input:disabled + .file-input-button {
@@ -54,27 +54,20 @@
 }
 
 .file-name {
-  padding: var(--spacing-md);
-  background: var(--bg-secondary);
-  border: 1px solid var(--bg-input);
+  padding: 6px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--bg-input-alt);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   word-break: break-all;
 }
 
 .file-selector-error {
-  padding: var(--spacing-md);
-  background: rgba(239, 68, 68, 0.1);
+  padding: 6px 10px;
+  background: rgba(239, 68, 68, 0.08);
   border: 1px solid var(--color-error);
   border-radius: var(--radius-sm);
   color: var(--color-error);
-  font-size: var(--font-size-sm);
-}
-
-@media (max-width: 480px) {
-  .file-input-button {
-    width: 100%;
-    justify-content: center;
-  }
+  font-size: 12px;
 }

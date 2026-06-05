@@ -1,14 +1,13 @@
 .metadata-input {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  gap: 4px;
 }
 
 .metadata-label {
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
+  font-size: 13px;
   font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .required-mark {
@@ -16,16 +15,16 @@
 }
 
 .metadata-field {
-  padding: var(--spacing-md);
+  padding: 8px 12px;
   background: var(--bg-input);
-  border: 2px solid var(--bg-input-alt);
+  border: 1px solid var(--bg-input-alt);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: var(--font-size-base);
+  font-size: 13px;
   font-family: var(--font-family);
   transition: border-color var(--transition-fast);
   resize: vertical;
-  min-height: 44px;
+  min-height: 36px;
 }
 
 .metadata-field:focus {
@@ -39,17 +38,16 @@
 }
 
 .metadata-field::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.25);
 }
 
 textarea.metadata-field {
-  min-height: 100px;
+  min-height: 80px;
   line-height: 1.5;
 }
 
 .character-count {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   text-align: right;
-  opacity: 0.7;
 }
