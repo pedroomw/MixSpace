@@ -1,5 +1,8 @@
+import dotenv from 'dotenv'
+dotenv.config({path: "./.env"})
+
 import express from "express"
-import filesRouter from './routes/files.js'
+import filesRouter from './routes/files-controller.js'
 
 const app = express();
 const PORT = process.env.PORT || 3000;
