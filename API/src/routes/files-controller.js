@@ -11,8 +11,8 @@ const storage = multer.diskStorage({
     cb(null, 'C:\\Users\\49552421\\Uploads')
   },
   filename: function (req, file, cb) {
-    const name = file.filename
-    cb(null, name)
+    file.filename = Date.now() + '-' + Math.random().toString(36).slice(2,8) + file.mimetype
+    cb(null, file.filename)
   }
 })
 const upload = multer({ storage })
@@ -27,8 +27,7 @@ router.get('/', (req, res) => {
 router.post('/upload', upload.single('file'), async (req, res) => {
 	try {
 		if (req.file) {
-			file.filename = Date.now() + '-' + Math.random().toString(36).slice(2,8) + req.file.mimetype
-			const {status, result} = await svc.uploadMetadata(req.body.filename, req.body.description, req.body.projectID)
+			const {status, result} = await svc.uploadMetadata(req.filename, req.body.description, req.body.projectID)
 			res.status(status).json(result)
 		} else {
 			res.status(400).json({ error: 'No file provided (field name: file)' })
