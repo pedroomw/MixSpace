@@ -1,6 +1,4 @@
-import dotenv from 'dotenv'
-dotenv.config({path: "./.env"})
-
+import 'dotenv/config'
 import express from "express"
 import filesRouter from './routes/files-controller.js'
 

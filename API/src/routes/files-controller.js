@@ -8,10 +8,10 @@ const router = Router()
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'C:\\Users\\49552421\\Uploads')
+    cb(null, './uploads/')
   },
   filename: function (req, file, cb) {
-    file.filename = Date.now() + '-' + Math.random().toString(36).slice(2,8) + file.mimetype
+    file.filename = Date.now() + '-' + Math.random().toString(36).slice(2,8) + path.extname(file.originalname) //path es un objeto con una funcion que extrae la extensión. le mnado el nombre completo
     cb(null, file.filename)
   }
 })
@@ -25,6 +25,7 @@ router.get('/', (req, res) => {
 })
 
 router.post('/upload', upload.single('file'), async (req, res) => {
+	console.log("llega al .post")
 	try {
 		if (req.file) {
 			const {status, result} = await svc.uploadMetadata(req.filename, req.body.description, req.body.projectID)
