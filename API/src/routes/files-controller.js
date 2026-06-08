@@ -1,6 +1,4 @@
 import setFileName from '../helpers/files.js'
-import path from "path"
-import fs from "fs"
 import { Router } from "express"
 import multer from 'multer'
 import SupabaseService from '../services/supabase-service.js'
