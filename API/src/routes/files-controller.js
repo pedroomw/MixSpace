@@ -1,3 +1,4 @@
+import setFileName from '../helpers/files.js'
 import path from "path"
 import fs from "fs"
 import { Router } from "express"
@@ -11,7 +12,7 @@ const storage = multer.diskStorage({
     cb(null, './uploads/')
   },
   filename: function (req, file, cb) {
-    file.filename = Date.now() + '-' + Math.random().toString(36).slice(2,8) + path.extname(file.originalname) //path es un objeto con una funcion que extrae la extensión. le mnado el nombre completo
+    file.filename = setFileName(file.originalname)
     cb(null, file.filename)
   }
 })
@@ -28,7 +29,8 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 	console.log("llega al .post")
 	try {
 		if (req.file) {
-			const {status, result} = await svc.uploadMetadata(req.filename, req.body.description, req.body.projectID)
+			console.log("req.file existe y entra al if")
+			const {status, result} = await svc.uploadMetadata(req.file.filename, req.body.description, req.body.projectID)
 			res.status(status).json(result)
 		} else {
 			res.status(400).json({ error: 'No file provided (field name: file)' })

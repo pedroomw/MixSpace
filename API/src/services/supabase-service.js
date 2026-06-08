@@ -5,13 +5,15 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY) must be set in environment')
-} else { 
-  const supabase = createClient(supabaseUrl, supabaseKey) 
-}
+} 
+
+const supabase = createClient(supabaseUrl, supabaseKey) 
 
 
 class SupabaseService {
     uploadMetadata = async (filename, description, projectID) => {
+      console.log("llega al upload metadata")
+      console.log("filename:" + filename)
       try{
         const{data, error} = await supabase
           .from('Versions')
@@ -24,7 +26,7 @@ class SupabaseService {
         }
       }
       catch(error){ 
-        return {status:500, result: error} 
+        return {status:500, result: "falla en el catch"} 
       } 
     }
 }
