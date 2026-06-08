@@ -24,10 +24,8 @@ router.get('/', (req, res) => {
 })
 
 router.post('/upload', upload.single('file'), async (req, res) => {
-	console.log("llega al .post")
 	try {
 		if (req.file) {
-			console.log("req.file existe y entra al if")
 			const {status, result} = await svc.uploadMetadata(req.file.filename, req.body.description, req.body.projectID)
 			res.status(status).json(result)
 		} else {
