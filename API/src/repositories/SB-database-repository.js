@@ -8,7 +8,7 @@ if (!supabaseUrl || !supabaseKey) {
 } 
 const supabase = createClient(supabaseUrl, supabaseKey) 
 
-class SupabaseRepository {
+class DatabaseRepository {
     uploadVersion = async (version) => {
       try{
         const result = await supabase
@@ -21,7 +21,6 @@ class SupabaseRepository {
         throw (error)
       }
     }
-
 }
 
-export default SupabaseRepository
+export default DatabaseRepository
