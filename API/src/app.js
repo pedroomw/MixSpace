@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
   res.json({ mensaje: 'API funcionando' });
 });
 
-app.use('/files', filesRouter)
+app.use('/versions', filesRouter)
 
 app.listen(PORT, () => {
   console.log(`API MixSpace inicializada en http://localhost:${PORT}`);
