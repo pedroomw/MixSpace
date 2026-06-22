@@ -7,4 +7,12 @@ class VersionMetadata {
     }
 }
 
-export default VersionMetadata
+class VersionFile{
+    constructor(filename, fileBuffer, mimetype){
+        this.filename = filename
+        this.fileBuffer = fileBuffer
+        this.mimetype = mimetype
+    }
+}
+
+export {VersionMetadata, VersionFile}

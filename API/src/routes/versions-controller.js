@@ -1,7 +1,8 @@
 import setFileName from '../helpers/files.js'
 import { Router } from "express"
 import upload from '../helpers/multer.js'
-import SupabaseService from '../services/supabase-service.js'
+import SupabaseService from '../services/versions-service.js'
+import {setVersionObjects} from '../helpers/version-helper.js'
 
 const router = Router()
 
@@ -14,7 +15,8 @@ router.get('/', (req, res) => {
 router.post('/upload', upload.single('file'), async (req, res) => {
 	try {
 		if (req.file) {
-			const result = await svc.uploadVersion(req.file.filename, req.body.description, req.body.projectID)
+			const {metadata, file} = setVersionObjects(req.body, req.file)
+			const result = await svc.uploadVersion(metadata, file)
 			res.status(201).json(result)
 		} else {
 			res.status(400).json({ error: 'No file provided (field name: file)' })
@@ -22,7 +24,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 	} 
 	catch (error) {
 		console.error(error)
-		res.status(500).json({ error: err.message || 'upload failed' })
+		res.status(500).json({ error: error.message || 'upload failed' })
 	}
 })
 

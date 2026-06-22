@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import express from "express"
-import filesRouter from './routes/files-controller.js'
+import filesRouter from './routes/versions-controller.js'
 import cors from 'cors'
 
 const app = express();
