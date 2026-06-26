@@ -1,25 +1,26 @@
 import DatabaseRepository from '../repositories/SB-database-repository.js';
 import StorageRepository from '../repositories/SB-storage-repository.js'
-import {verifyVersionMetadata, verifyVersionFile} from '../helpers/version-helper.js'
+
+import setRandomFilename from '../helpers/files.js';
+import {VersionMetadata, VersionFile} from "../entities/supabase.js";
 
 class SupabaseService {
 
     uploadVersion = async (metadata, file) => {
       try{
-        const resultadoDatabase = await this.uploadVersionMetadata(metadata)
-        const resultadoStorage = await this.uploadVersionFile(file)
-        const resultado = `Procesamiento correcto de Metadata y Archivo. MD: ${resultadoDatabase}`
+        const {objMetadata, objFile} = this.setMetadataAndFileObjects(metadata, file)
+        const resultadoDatabase = await this.uploadVersionMetadata(objMetadata)
+        const resultadoStorage = await this.uploadVersionFile(objFile)
+        return resultadoDatabase
       }
       catch(error){
         throw error
       }
     }
 
-
     uploadVersionMetadata = async (metadata) => {
       try{
-        console.log(metadata)
-        verifyVersionMetadata(metadata)
+        this.verifyVersionMetadata(metadata)
         const repo = new DatabaseRepository
         const resultado = await repo.uploadVersion(metadata)
         return resultado
@@ -31,7 +32,7 @@ class SupabaseService {
 
     uploadVersionFile = async (file) => {
       try {
-        verifyVersionFile(file)
+        this.verifyVersionFile(file)
         const repo = new StorageRepository
         const resultado = await repo.uploadFile(file)
         return resultado
@@ -39,6 +40,25 @@ class SupabaseService {
       catch(error){
         throw error
       }
+    }
+
+
+
+    setMetadataAndFileObjects = (metadata, file) => {
+      const filename = setRandomFilename(file.originalname)
+      const fileBuffer = file.buffer
+      const fileMimeType = file.mimetype
+      const metadataObject = new VersionMetadata(filename, body.description, body.project_id)
+      const fileObject = new VersionFile(filename, fileBuffer, fileMimeType)
+      return{metadataObject, fileObject}
+    }
+
+    verifyVersionFile = (file) => {
+      console.log("Procesando" + file.filename)
+    }
+    
+    verifyVersionMetadata = (metadata) => {
+      console.log("Procesando" + metadata.)
     }
 
 }
