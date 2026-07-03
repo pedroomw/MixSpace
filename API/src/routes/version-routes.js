@@ -14,7 +14,7 @@ router.get('/', (req, res) => {
     res.json({ mensaje: 'Endpoint de versiones' })
 })
 
-router.post('/upload', upload.single('file'), filemiddleware.setFilename(req, res, next), verifier.verifyVersion(req, res, next), async (req, res) => {
+router.post('/upload', upload.single('file'), filemiddleware.setFilename, verifier.verifyVersion, async (req, res) => {
 	controller.uploadVersion(req, res)
 })
 

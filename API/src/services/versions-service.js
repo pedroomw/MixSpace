@@ -1,7 +1,5 @@
-import DatabaseRepository from '../repositories/SB-database-repository.js';
-import StorageRepository from '../repositories/SB-storage-repository.js'
-
-import setRandomFilename from '../helpers/files.js';
+import DatabaseRepository from '../repositories/database-repository.js';
+import StorageRepository from '../repositories/storage-repository.js'
 
 class SupabaseService {
 
