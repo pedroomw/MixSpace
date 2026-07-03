@@ -15,6 +15,7 @@ class DatabaseRepository {
           .from('Versions')
           .insert([{version}])
           .select()
+          .throwOnError()
         return result
       }
       catch(error){
