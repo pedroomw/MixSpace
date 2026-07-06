@@ -17,6 +17,12 @@ class VerifiersMiddleware{
             throw (error)
         }
     }
+
+    verifyRequest = async (req, res, next) => {
+        console.log(req.body)
+        console.log(req.file)
+        next()
+    }
 }
 
 export default VerifiersMiddleware
