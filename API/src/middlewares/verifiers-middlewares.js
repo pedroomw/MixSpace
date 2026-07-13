@@ -18,7 +18,7 @@ class VerifiersMiddleware{
         }
     }
 
-    verifyRequest = async (req, res, next) => {
+    verifyRequest = (req, res, next) => {
         console.log(req.body)
         console.log(req.file)
         next()

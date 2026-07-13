@@ -15,7 +15,7 @@ class VersionController{
 			}
 		} 
 		catch (error) {
-			res.status(500).json({ error: error.message || 'upload failed' })
+			res.status(500).json({ cause: error.cause|| 'upload failed' })
 		}
 	}
 }

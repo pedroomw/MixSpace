@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
 })
 
 router.post('/upload', 
-    upload.single('file'), 
+    upload.single("file"),
     verifier.verifyRequest,
     filemiddleware.setFilename, 
     verifier.verifyVersion, 
