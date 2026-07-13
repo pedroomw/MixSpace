@@ -5,8 +5,11 @@ const svc = new SupabaseService()
 class VersionController{
 	uploadVersion = async (req, res) => {
 		try {
+			req.file.filename = req.body.filename
 			if (req.file) {
-				const metadata = req.body
+				console.log(req.body)
+				console.log(req.file)
+				const metadata = { ...req.body }
 				const file = req.file
 				const result = await svc.uploadVersion(metadata, file)
 				res.status(201).json(result)

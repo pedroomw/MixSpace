@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 class StorageRepository {
     uploadFile = async (file) => {
         try{
-            const {data, error} = await supabase.storage.from('versions').upload(file.filename, file.fileBuffer, {cacheControl: '3600', upsert: false, contentType: file.mimetype})
+            const {data, error} = await supabase.storage.from('versions').upload(file.filename, file.buffer, {cacheControl: '3600', upsert: false, contentType: file.mimetype})
             if(error){
                 throw error
             } else {
@@ -19,6 +19,7 @@ class StorageRepository {
             }
         }
         catch(error){
+            console.log(error)
             throw (error)
         }
     }

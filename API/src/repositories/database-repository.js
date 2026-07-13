@@ -11,14 +11,16 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 class DatabaseRepository {
     uploadVersion = async (version) => {
       try{
-        const result = await supabase
+        console.log(version)
+        const {data, error} = await supabase
           .from('Versions')
-          .insert([{version}])
+          .insert([version])
           .select()
           .throwOnError()
-        return result
+        return data
       }
       catch(error){
+        console.log("El error es: " + error)
         throw (error)
       }
     }
