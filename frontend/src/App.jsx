@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import FileUploadForm from './components/FileUploadForm';
+import Login from './components/Login';
 import './App.css';
 
 const SIMULATED_PROJECTS = [
@@ -12,17 +14,41 @@ const SIMULATED_PROJECTS = [
 ];
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('mixspace_user');
+    const storedToken = localStorage.getItem('mixspace_token');
+    if (storedUser && storedToken) {
+      setUser(JSON.parse(storedUser));
+    }
+    setCheckingSession(false);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('mixspace_token');
+    localStorage.removeItem('mixspace_user');
+    setUser(null);
+  };
+
+  if (checkingSession) {
+    return null;
+  }
+
+  if (!user) {
+    return <Login onLoginSuccess={setUser} />;
+  }
+
   return (
     <div className="app">
       <Header />
 
       <main className="main-content">
-        {/* Form area */}
         <div className="form-area">
           <FileUploadForm />
         </div>
 
-        {/* Projects panel — flush right, full height */}
         <aside className="projects-panel" aria-label="Mis proyectos">
           <div className="projects-panel-header">
             <h2 className="projects-panel-title">Proyectos</h2>
