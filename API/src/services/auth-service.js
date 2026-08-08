@@ -12,11 +12,8 @@ class AuthService {
     }
 
     login = async (email, password) => {
-        const data = await authRepository.signIn(email, password)
-        return {
-            user: data.user,
-            session: data.session
-        }
+        const user = await authRepository.signIn(email, password)
+        return user
     }
 }
 

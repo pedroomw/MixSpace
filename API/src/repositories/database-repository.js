@@ -9,12 +9,11 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey) 
 
 class DatabaseRepository {
-    uploadVersion = async (version) => {
+    uploadVersion = async (description, project_id, filename) => {
       try{
-        console.log(version)
         const {data, error} = await supabase
           .from('Versions')
-          .insert([version])
+          .insert([{description: description, project_id: project_id, filename: filename}])
           .select()
           .throwOnError()
         return data
