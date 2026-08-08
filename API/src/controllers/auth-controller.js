@@ -23,8 +23,8 @@ class AuthController {
             if (!email || !password) {
                 return res.status(400).json({ error: 'Email y contraseña son requeridos' })
             }
-            const result = await authService.login(email, password)
-            res.status(200).json(result)
+            const token = await authService.login(email, password)
+            res.status(200).json(token)
         } catch (error) {
             console.log('Error en login: ' + error.message)
             res.status(401).json({ error: error.message })

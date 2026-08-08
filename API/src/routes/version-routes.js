@@ -10,6 +10,8 @@ router.get('/', (req, res) => {
     res.json({ mensaje: 'Endpoint de versiones' })
 })
 
+router.use(authMiddleware)
+
 router.post('/upload', 
     upload.single("file"),
     controller.uploadVersion

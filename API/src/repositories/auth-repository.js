@@ -21,7 +21,7 @@ class AuthRepository {
     signIn = async (email, password) => {
         const { data, error } = await supabaseAuth.auth.signInWithPassword({ email, password })
         if (error) throw error
-        return data
+        return data.user
     }
 
     getUserFromToken = async (token) => {
