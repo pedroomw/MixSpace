@@ -1,0 +1,29 @@
+# Carpeta de build (se regenera con cmake -B build)
+build/
+
+# Si tenés JUCE clonado DENTRO de tu proyecto (no es tu caso, la tenés en el Escritorio aparte, pero por las dudas)
+JUCE/
+
+# Archivos de VS Code (opcional, algunos prefieren versionar settings.json del equipo)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Archivos de Visual Studio / MSVC
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+out/
+
+# Archivos intermedios de compilación
+*.obj
+*.exp
+*.lib
+*.pdb
+*.ilk
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
