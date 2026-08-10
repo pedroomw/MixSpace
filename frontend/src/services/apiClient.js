@@ -13,24 +13,26 @@ const apiClient = axios.create({
  * Upload a file with metadata to the backend
  * @param {Object} fileData - The upload payload
  * @param {File} fileData.file - The file to upload
- * @param {string} fileData.filename - The filename
  * @param {string} fileData.description - The project description
- * @param {string} fileData.projectID - The project ID
+ * @param {string} fileData.project_id - The project ID
  * @returns {Promise<{ok: boolean, result?: any, error?: string}>}
  */
-export async function uploadFile({ file, filename, description, projectID }) {
+export async function uploadFile({ file, description, project_id }) {
   try {
-    // Create FormData
+    // Retrieve auth token stored during login
+    const token = localStorage.getItem('mixspace_token');
+
+    // Create FormData — field names must match what multer/controller expect
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('filename', filename);
     formData.append('description', description);
-    formData.append('projectID', projectID);
+    formData.append('project_id', project_id);
 
-    // Send POST request
-    const response = await apiClient.post('/files/upload', formData, {
+    // Send POST request to the correct endpoint with Bearer token
+    const response = await apiClient.post('/versions/upload', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
+        'Content-Type': 'multipart/form-data',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       }
     });
 

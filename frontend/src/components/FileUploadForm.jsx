@@ -9,9 +9,8 @@ import './FileUploadForm.css';
 function FileUploadForm() {
   // Form state
   const [selectedFile, setSelectedFile] = useState(null);
-  const [filename, setFilename] = useState('');
   const [description, setDescription] = useState('');
-  const [projectID, setProjectID] = useState('');
+  const [project_id, setProjectId] = useState('');
   
   // UI state
   const [isUploading, setIsUploading] = useState(false);
@@ -35,13 +34,6 @@ function FileUploadForm() {
       return false;
     }
 
-    // Check if filename is provided
-    if (!filename.trim()) {
-      setUploadStatus('error');
-      setStatusMessage('El nombre del archivo es obligatorio');
-      return false;
-    }
-
     // Check if description is provided
     if (!description.trim()) {
       setUploadStatus('error');
@@ -49,8 +41,8 @@ function FileUploadForm() {
       return false;
     }
 
-    // Check if projectID is provided
-    if (!projectID.trim()) {
+    // Check if project_id is provided
+    if (!project_id.trim()) {
       setUploadStatus('error');
       setStatusMessage('El ID del proyecto es obligatorio');
       return false;
@@ -86,9 +78,8 @@ function FileUploadForm() {
       // Upload file
       const result = await uploadFile({
         file: selectedFile,
-        filename: filename.trim(),
         description: description.trim(),
-        projectID: projectID.trim()
+        project_id: project_id.trim()
       });
 
       if (result.ok) {
@@ -117,9 +108,8 @@ function FileUploadForm() {
   // Reset form to initial state
   const resetForm = () => {
     setSelectedFile(null);
-    setFilename('');
     setDescription('');
-    setProjectID('');
+    setProjectId('');
     setUploadStatus('idle');
     setStatusMessage('');
     setUploadAttempted(false);
@@ -142,16 +132,6 @@ function FileUploadForm() {
         />
 
         <MetadataInput
-          id="filename"
-          label="Nombre del archivo"
-          value={filename}
-          onChange={setFilename}
-          maxLength={255}
-          required={true}
-          disabled={isUploading}
-        />
-
-        <MetadataInput
           id="description"
           label="Descripción"
           value={description}
@@ -163,10 +143,10 @@ function FileUploadForm() {
         />
 
         <MetadataInput
-          id="projectID"
+          id="project_id"
           label="ID del proyecto"
-          value={projectID}
-          onChange={setProjectID}
+          value={project_id}
+          onChange={setProjectId}
           maxLength={100}
           required={true}
           disabled={isUploading}

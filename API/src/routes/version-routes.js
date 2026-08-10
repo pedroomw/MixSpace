@@ -1,6 +1,7 @@
 import { Router } from "express"
 import upload from '../helpers/multer.js'
 import VersionController from '../controllers/version-controller.js'
+import authMiddleware from '../middlewares/auth-middleware.js'
 
 const router = Router()
 

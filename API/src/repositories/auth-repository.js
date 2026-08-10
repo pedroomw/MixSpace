@@ -14,7 +14,7 @@ class AuthRepository {
         const { data, error } = await supabaseAuth.auth.signUp({ email, password })
         if (error) throw error
         const { data: profileData, error: profileError } = await supabaseAuth.from("Users").insert({ id: data.user.id, email: email, password: password }).select()
-        if(profileError) throw profileError
+        if(profileError) { throw profileError}
         return profileData
     }
 

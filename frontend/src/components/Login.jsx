@@ -18,12 +18,22 @@ function Login({ onLoginSuccess }) {
                 ? await registerUser(email, password)
                 : await loginUser(email, password)
 
-            if (data.session) {
-                localStorage.setItem('mixspace_token', data.session.access_token)
-                localStorage.setItem('mixspace_user', JSON.stringify(data.user))
-                onLoginSuccess(data.user)
-            } else if (isRegistering) {
-                setError('Registro exitoso. Revisá tu email para confirmar la cuenta.')
+            if (isRegistering) {
+                // Register returns { user, session } from Supabase
+                if (data.session) {
+                    localStorage.setItem('mixspace_token', data.session.access_token)
+                    localStorage.setItem('mixspace_user', JSON.stringify(data.user))
+                    onLoginSuccess(data.user)
+                } else {
+                    setError('Registro exitoso. Revisá tu email para confirmar la cuenta.')
+                }
+            } else {
+                // Login returns a bare JWT string
+                const token = data
+                localStorage.setItem('mixspace_token', token)
+                // Store a minimal user object so App.jsx can restore the session
+                localStorage.setItem('mixspace_user', JSON.stringify({ token }))
+                onLoginSuccess({ token })
             }
         } catch (err) {
             const message = err.response?.data?.error || 'Ocurrió un error, intentá de nuevo'
