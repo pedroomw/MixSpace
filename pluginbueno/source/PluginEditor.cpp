@@ -12,7 +12,7 @@ HolaMundoPluginAudioProcessorEditor::HolaMundoPluginAudioProcessorEditor(HolaMun
     // Qué pasa al hacer click
     saveVersionButton.onClick = [this]
     {
-        juce::URL("https://mixspace.tuapp.com").launchInDefaultBrowser();
+        juce::URL("http://localhost:5173").launchInDefaultBrowser();
     };
 
     addAndMakeVisible(saveVersionButton);
@@ -21,7 +21,6 @@ HolaMundoPluginAudioProcessorEditor::HolaMundoPluginAudioProcessorEditor(HolaMun
 void HolaMundoPluginAudioProcessorEditor::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colour(0xff1a1a1a)); // fondo oscuro
-
     g.setColour(juce::Colours::white);
     g.setFont(24.0f);
     g.drawText("Hola Mundo", getLocalBounds().removeFromTop(120), juce::Justification::centred, true);
@@ -33,7 +32,3 @@ void HolaMundoPluginAudioProcessorEditor::resized()
     area.removeFromTop(120); // deja espacio arriba para el texto
     saveVersionButton.setBounds(area.reduced(100, 20)); // botón centrado, con márgenes
 }
-saveVersionButton.onClick = [this]
-{
-    juce::URL("https://localhost:5173").launchInDefaultBrowser();
-};
