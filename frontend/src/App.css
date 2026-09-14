@@ -231,3 +231,30 @@
   text-decoration: underline;
   padding: 0;
 }
+
+/* Plugin session banner */
+.plugin-session-banner {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 24px;
+  border-bottom: 1px solid transparent;
+}
+
+.plugin-session-banner.resolving {
+  background: rgba(192, 132, 252, 0.08);
+  border-bottom-color: rgba(192, 132, 252, 0.2);
+  color: var(--accent-primary);
+}
+
+.plugin-session-banner.resolved {
+  background: rgba(16, 185, 129, 0.08);
+  border-bottom-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.plugin-session-banner.error {
+  background: rgba(239, 68, 68, 0.08);
+  border-bottom-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}

@@ -23,12 +23,13 @@ target_sources(HolaMundoPlugin
 target_compile_definitions(HolaMundoPlugin
     PUBLIC
         JUCE_WEB_BROWSER=0
-        JUCE_USE_CURL=0
+        JUCE_USE_CURL=1
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
 target_link_libraries(HolaMundoPlugin
     PRIVATE
         juce::juce_audio_utils
+        juce::juce_core
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

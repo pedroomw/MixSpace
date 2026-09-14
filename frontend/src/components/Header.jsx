@@ -1,6 +1,6 @@
 import './Header.css';
 
-function Header() {
+function Header({ onLogout }) {
   return (
     <header className="header">
       <div className="header-content">
@@ -25,7 +25,7 @@ function Header() {
           </div>
         </div>
 
-        {/* Right: profile only */}
+        {/* Right: profile + logout */}
         <div className="header-right">
           <div className="header-profile">
             <button className="icon-btn" aria-label="Ajustes">
@@ -43,6 +43,15 @@ function Header() {
 
             <span className="username">Pedroomw</span>
           </div>
+
+          <button className="logout-btn" onClick={onLogout} aria-label="Cerrar sesión">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span className="logout-label">Salir</span>
+          </button>
         </div>
       </div>
     </header>

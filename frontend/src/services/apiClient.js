@@ -10,6 +10,56 @@ const apiClient = axios.create({
 });
 
 /**
+ * Resolve a plugin login session by delivering the JWT to the waiting plugin.
+ * Called by the web frontend after a successful login when ?sessionId is present.
+ * @param {string} sessionId - The session ID the plugin generated
+ * @param {string} token     - The JWT obtained from login
+ * @returns {Promise<{ok: boolean, error?: string}>}
+ */
+export async function resolvePluginSession(sessionId, token) {
+  try {
+    await apiClient.post(`/auth/plugin-session/${sessionId}/resolve`, { token });
+    return { ok: true };
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.error || 'No se pudo resolver la sesión del plugin';
+    return { ok: false, error: errorMessage };
+  }
+}
+
+/**
+ * Fetch all projects belonging to the authenticated user
+ * @returns {Promise<{ok: boolean, projects?: Array, error?: string}>}
+ */
+export async function getProjects() {
+  try {
+    const token = localStorage.getItem('mixspace_token');
+
+    const response = await apiClient.get('/projects', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+
+    // Normalise: accept array at root or inside a `projects` key
+    const data = response.data;
+    const projects = Array.isArray(data) ? data : (data?.projects ?? []);
+
+    return { ok: true, projects };
+  } catch (error) {
+    let errorMessage = 'No se pudieron cargar los proyectos';
+
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'No se pudo conectar con el servidor';
+    } else if (error.response?.status === 401) {
+      errorMessage = 'Sesión expirada. Vuelva a iniciar sesión';
+    } else if (error.response) {
+      errorMessage = error.response.data?.error || errorMessage;
+    }
+
+    return { ok: false, error: errorMessage, projects: [] };
+  }
+}
+
+/**
  * Upload a file with metadata to the backend
  * @param {Object} fileData - The upload payload
  * @param {File} fileData.file - The file to upload
@@ -73,5 +123,7 @@ export async function uploadFile({ file, description, project_id }) {
 }
 
 export default {
+  resolvePluginSession,
+  getProjects,
   uploadFile
 };

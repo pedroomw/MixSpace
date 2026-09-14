@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import FileUploadForm from './components/FileUploadForm';
 import Login from './components/Login';
+import { resolvePluginSession } from './services/apiClient';
 import './App.css';
 
 const SIMULATED_PROJECTS = [
@@ -16,6 +17,10 @@ const SIMULATED_PROJECTS = [
 function App() {
   const [user, setUser] = useState(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [pluginSessionStatus, setPluginSessionStatus] = useState(null); // null | 'resolving' | 'resolved' | 'error'
+
+  // Read ?sessionId from the URL once on mount
+  const pluginSessionId = new URLSearchParams(window.location.search).get('sessionId');
 
   useEffect(() => {
     const storedUser = localStorage.getItem('mixspace_user');
@@ -25,6 +30,26 @@ function App() {
     }
     setCheckingSession(false);
   }, []);
+
+  // When the user becomes logged in AND there is a pending plugin session, resolve it
+  useEffect(() => {
+    if (!user || !pluginSessionId) return;
+
+    const token = localStorage.getItem('mixspace_token');
+    if (!token) return;
+
+    setPluginSessionStatus('resolving');
+
+    resolvePluginSession(pluginSessionId, token).then((result) => {
+      if (result.ok) {
+        setPluginSessionStatus('resolved');
+        // Clean the URL so a refresh doesn't try to resolve again
+        window.history.replaceState({}, '', window.location.pathname);
+      } else {
+        setPluginSessionStatus('error');
+      }
+    });
+  }, [user, pluginSessionId]);
 
   const handleLogout = () => {
     localStorage.removeItem('mixspace_token');
@@ -42,7 +67,23 @@ function App() {
 
   return (
     <div className="app">
-      <Header />
+      <Header onLogout={handleLogout} />
+
+      {pluginSessionStatus === 'resolving' && (
+        <div className="plugin-session-banner resolving">
+          Conectando con FL Studio...
+        </div>
+      )}
+      {pluginSessionStatus === 'resolved' && (
+        <div className="plugin-session-banner resolved">
+          ✓ Sesión de plugin autorizada. Podés cerrar esta pestaña.
+        </div>
+      )}
+      {pluginSessionStatus === 'error' && (
+        <div className="plugin-session-banner error">
+          No se pudo conectar con el plugin. La sesión puede haber expirado.
+        </div>
+      )}
 
       <main className="main-content">
         <div className="form-area">

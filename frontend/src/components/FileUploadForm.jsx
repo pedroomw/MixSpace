@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import FileSelector from './FileSelector';
 import MetadataInput from './MetadataInput';
+import ProjectPicker from './ProjectPicker';
 import UploadButton from './UploadButton';
 import StatusMessage from './StatusMessage';
 import { uploadFile } from '../services/apiClient';
@@ -10,7 +11,7 @@ function FileUploadForm() {
   // Form state
   const [selectedFile, setSelectedFile] = useState(null);
   const [description, setDescription] = useState('');
-  const [project_id, setProjectId] = useState('');
+  const [selectedProject, setSelectedProject] = useState(null); // { id, name }
   
   // UI state
   const [isUploading, setIsUploading] = useState(false);
@@ -42,9 +43,9 @@ function FileUploadForm() {
     }
 
     // Check if project_id is provided
-    if (!project_id.trim()) {
+    if (!selectedProject) {
       setUploadStatus('error');
-      setStatusMessage('El ID del proyecto es obligatorio');
+      setStatusMessage('Debe seleccionar un proyecto');
       return false;
     }
 
@@ -79,7 +80,7 @@ function FileUploadForm() {
       const result = await uploadFile({
         file: selectedFile,
         description: description.trim(),
-        project_id: project_id.trim()
+        project_id: selectedProject.id
       });
 
       if (result.ok) {
@@ -109,7 +110,7 @@ function FileUploadForm() {
   const resetForm = () => {
     setSelectedFile(null);
     setDescription('');
-    setProjectId('');
+    setSelectedProject(null);
     setUploadStatus('idle');
     setStatusMessage('');
     setUploadAttempted(false);
@@ -142,12 +143,9 @@ function FileUploadForm() {
           type="textarea"
         />
 
-        <MetadataInput
-          id="project_id"
-          label="ID del proyecto"
-          value={project_id}
-          onChange={setProjectId}
-          maxLength={100}
+        <ProjectPicker
+          selectedProject={selectedProject}
+          onSelect={setSelectedProject}
           required={true}
           disabled={isUploading}
         />
