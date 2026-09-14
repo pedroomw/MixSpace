@@ -2,6 +2,7 @@ import 'dotenv/config'
 import express from "express"
 import filesRouter from './routes/version-routes.js'
 import authRouter from './routes/auth-routes.js'
+import projectsRouter from './routes/projects-routes.js'
 import cors from 'cors'
 
 const app = express()
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 
 app.use('/versions', filesRouter)
 app.use('/auth', authRouter)
+app.use('/projects', projectsRouter)
 
 app.listen(PORT, () => {
   console.log(`API MixSpace inicializada en http://localhost:${PORT}`)
