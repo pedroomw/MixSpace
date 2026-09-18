@@ -2,13 +2,12 @@
 
 // ─── Constructor ──────────────────────────────────────────────────────────────
 
-HolaMundoPluginAudioProcessorEditor::HolaMundoPluginAudioProcessorEditor
-    (HolaMundoPluginAudioProcessor& p)
+MixSpaceAudioProcessorEditor::MixSpaceAudioProcessorEditor
+    (MixSpaceAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    setSize (440, 360);
+    setSize (440, 380);
 
-    // ── Shared look ───────────────────────────────────────────────────────
     auto styleButton = [](juce::TextButton& b,
                           juce::uint32 bg, juce::uint32 fg)
     {
@@ -36,26 +35,22 @@ HolaMundoPluginAudioProcessorEditor::HolaMundoPluginAudioProcessorEditor
     addAndMakeVisible (fileNameLabel);
 
     descriptionEditor.setMultiLine (false);
-    descriptionEditor.setTextToShowWhenEmpty ("Descripcion...",
-                                              juce::Colour (COL_MUTED));
-    descriptionEditor.setColour (juce::TextEditor::backgroundColourId,
-                                 juce::Colour (COL_SURFACE));
-    descriptionEditor.setColour (juce::TextEditor::textColourId,
-                                 juce::Colour (COL_TEXT));
-    descriptionEditor.setColour (juce::TextEditor::outlineColourId,
-                                 juce::Colour (0xff444444));
+    descriptionEditor.setTextToShowWhenEmpty ("Descripcion...", juce::Colour (COL_MUTED));
+    descriptionEditor.setColour (juce::TextEditor::backgroundColourId, juce::Colour (COL_SURFACE));
+    descriptionEditor.setColour (juce::TextEditor::textColourId,       juce::Colour (COL_TEXT));
+    descriptionEditor.setColour (juce::TextEditor::outlineColourId,    juce::Colour (0xff444444));
     addAndMakeVisible (descriptionEditor);
 
-    projectIdEditor.setMultiLine (false);
-    projectIdEditor.setTextToShowWhenEmpty ("ID del proyecto...",
-                                            juce::Colour (COL_MUTED));
-    projectIdEditor.setColour (juce::TextEditor::backgroundColourId,
-                               juce::Colour (COL_SURFACE));
-    projectIdEditor.setColour (juce::TextEditor::textColourId,
-                               juce::Colour (COL_TEXT));
-    projectIdEditor.setColour (juce::TextEditor::outlineColourId,
-                               juce::Colour (0xff444444));
-    addAndMakeVisible (projectIdEditor);
+    // Project picker button
+    styleButton (projectPickerButton, COL_SURFACE, COL_MUTED);
+    projectPickerButton.onClick = [this] { showProjectPicker(); };
+    addAndMakeVisible (projectPickerButton);
+
+    // Small label shown below the picker button once a project is selected
+    selectedProjectLabel.setFont (juce::Font (11.0f));
+    selectedProjectLabel.setColour (juce::Label::textColourId, juce::Colour (COL_ACCENT));
+    selectedProjectLabel.setJustificationType (juce::Justification::centredLeft);
+    addAndMakeVisible (selectedProjectLabel);
 
     styleButton (uploadButton, COL_ACCENT, COL_TEXT);
     uploadButton.onClick = [this] { handleUpload(); };
@@ -66,37 +61,43 @@ HolaMundoPluginAudioProcessorEditor::HolaMundoPluginAudioProcessorEditor
     addAndMakeVisible (logoutButton);
 
     uploadStatusLabel.setJustificationType (juce::Justification::centred);
-    uploadStatusLabel.setColour (juce::Label::textColourId,
-                                 juce::Colour (COL_MUTED));
+    uploadStatusLabel.setColour (juce::Label::textColourId, juce::Colour (COL_MUTED));
     addAndMakeVisible (uploadStatusLabel);
 
     // ── Register as listener ──────────────────────────────────────────────
-    audioProcessor.addAuthListener   (this);
-    audioProcessor.addUploadListener (this);
+    audioProcessor.addAuthListener     (this);
+    audioProcessor.addUploadListener   (this);
+    audioProcessor.addProjectsListener (this);
 
     refreshVisibility();
 }
 
 // ─── Destructor ───────────────────────────────────────────────────────────────
 
-HolaMundoPluginAudioProcessorEditor::~HolaMundoPluginAudioProcessorEditor()
+MixSpaceAudioProcessorEditor::~MixSpaceAudioProcessorEditor()
 {
-    audioProcessor.removeAuthListener   (this);
-    audioProcessor.removeUploadListener (this);
+    audioProcessor.removeAuthListener     (this);
+    audioProcessor.removeUploadListener   (this);
+    audioProcessor.removeProjectsListener (this);
 }
 
 // ─── Listener callbacks ───────────────────────────────────────────────────────
 
-void HolaMundoPluginAudioProcessorEditor::authStateChanged (AuthState newState)
+void MixSpaceAudioProcessorEditor::authStateChanged (AuthState newState)
 {
-    // Always called on the message thread (processor ensures this)
     switch (newState)
     {
         case AuthState::LoggedOut:
             loginStatusLabel.setText ("", juce::dontSendNotification);
-            loginStatusLabel.setColour (juce::Label::textColourId,
-                                        juce::Colour (COL_MUTED));
-            loginButton.setEnabled (true);  // always re-enable on logout
+            loginStatusLabel.setColour (juce::Label::textColourId, juce::Colour (COL_MUTED));
+            loginButton.setEnabled (true);
+            // Reset picker state on logout
+            hasSelectedProject = false;
+            selectedProject    = {};
+            selectedProjectLabel.setText ("", juce::dontSendNotification);
+            projectPickerButton.setButtonText ("Seleccionar proyecto...");
+            projectPickerButton.setColour (juce::TextButton::textColourOffId,
+                                           juce::Colour (COL_MUTED));
             break;
 
         case AuthState::WaitingForBrowser:
@@ -115,17 +116,17 @@ void HolaMundoPluginAudioProcessorEditor::authStateChanged (AuthState newState)
     repaint();
 }
 
-void HolaMundoPluginAudioProcessorEditor::uploadStateChanged (UploadState newState,
-                                                               const juce::String& msg)
+void MixSpaceAudioProcessorEditor::uploadStateChanged (UploadState newState,
+                                                        const juce::String& msg)
 {
     uploadStatusLabel.setText (msg, juce::dontSendNotification);
 
     juce::uint32 colour = COL_MUTED;
     switch (newState)
     {
-        case UploadState::Uploading: colour = COL_MUTED;    break;
-        case UploadState::Success:   colour = COL_SUCCESS;  break;
-        case UploadState::Error:     colour = COL_ERROR;    break;
+        case UploadState::Uploading: colour = COL_MUTED;   break;
+        case UploadState::Success:   colour = COL_SUCCESS; break;
+        case UploadState::Error:     colour = COL_ERROR;   break;
         default: break;
     }
 
@@ -134,13 +135,33 @@ void HolaMundoPluginAudioProcessorEditor::uploadStateChanged (UploadState newSta
     repaint();
 }
 
+void MixSpaceAudioProcessorEditor::projectsLoaded (const juce::Array<Project>& projects)
+{
+    // Projects arrived — update picker button to signal they're ready.
+    // The actual list is read directly from audioProcessor.getCachedProjects()
+    // when the popup opens, so nothing else to do here.
+    if (projects.isEmpty())
+    {
+        projectPickerButton.setButtonText ("Sin proyectos disponibles");
+        projectPickerButton.setEnabled (false);
+    }
+    else
+    {
+        projectPickerButton.setButtonText (hasSelectedProject
+            ? selectedProject.name
+            : "Seleccionar proyecto...");
+        projectPickerButton.setEnabled (true);
+    }
+
+    repaint();
+}
+
 // ─── Paint ───────────────────────────────────────────────────────────────────
 
-void HolaMundoPluginAudioProcessorEditor::paint (juce::Graphics& g)
+void MixSpaceAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour (COL_BG));
 
-    // Logo / title at the top
     g.setColour (juce::Colour (COL_ACCENT));
     g.setFont (juce::Font (20.0f, juce::Font::bold));
     g.drawText ("MixSpace", getLocalBounds().removeFromTop (48),
@@ -148,34 +169,25 @@ void HolaMundoPluginAudioProcessorEditor::paint (juce::Graphics& g)
 
     const AuthState state = audioProcessor.getAuthState();
 
+    g.setColour (juce::Colour (COL_MUTED));
+    g.setFont (13.0f);
+    auto sub = getLocalBounds().removeFromTop (80);
+    sub.removeFromTop (48);
+
     if (state == AuthState::LoggedOut || state == AuthState::WaitingForBrowser)
-    {
-        // Subtitle
-        g.setColour (juce::Colour (COL_MUTED));
-        g.setFont (13.0f);
-        auto sub = getLocalBounds().removeFromTop (80);
-        sub.removeFromTop (48);
-        g.drawText ("Inicia sesion para subir versiones",
-                    sub, juce::Justification::centred, true);
-    }
+        g.drawText ("Inicia sesion para subir versiones", sub,
+                    juce::Justification::centred, true);
     else
-    {
-        // "Subir version" heading
-        g.setColour (juce::Colour (COL_MUTED));
-        g.setFont (13.0f);
-        auto sub = getLocalBounds().removeFromTop (80);
-        sub.removeFromTop (48);
-        g.drawText ("Sube una nueva version de tu proyecto",
-                    sub, juce::Justification::centred, true);
-    }
+        g.drawText ("Sube una nueva version de tu proyecto", sub,
+                    juce::Justification::centred, true);
 }
 
 // ─── Resized ─────────────────────────────────────────────────────────────────
 
-void HolaMundoPluginAudioProcessorEditor::resized()
+void MixSpaceAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced (24);
-    area.removeFromTop (64); // space for painted title + subtitle
+    area.removeFromTop (64);
 
     const AuthState state = audioProcessor.getAuthState();
 
@@ -187,7 +199,7 @@ void HolaMundoPluginAudioProcessorEditor::resized()
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
 
-void HolaMundoPluginAudioProcessorEditor::layoutLoginScreen (juce::Rectangle<int> area)
+void MixSpaceAudioProcessorEditor::layoutLoginScreen (juce::Rectangle<int> area)
 {
     area.removeFromTop (16);
     loginButton.setBounds      (area.removeFromTop (42));
@@ -195,61 +207,63 @@ void HolaMundoPluginAudioProcessorEditor::layoutLoginScreen (juce::Rectangle<int
     loginStatusLabel.setBounds (area.removeFromTop (24));
 }
 
-void HolaMundoPluginAudioProcessorEditor::layoutUploadScreen (juce::Rectangle<int> area)
+void MixSpaceAudioProcessorEditor::layoutUploadScreen (juce::Rectangle<int> area)
 {
-    // Row 1: choose file button
+    // Row 1: choose file
     chooseFileButton.setBounds (area.removeFromTop (36));
     area.removeFromTop (4);
 
-    // Row 2: file name label
+    // Row 2: file name
     fileNameLabel.setBounds (area.removeFromTop (20));
     area.removeFromTop (8);
 
-    // Row 3: description field
+    // Row 3: description
     descriptionEditor.setBounds (area.removeFromTop (36));
     area.removeFromTop (6);
 
-    // Row 4: project id field
-    projectIdEditor.setBounds (area.removeFromTop (36));
-    area.removeFromTop (10);
+    // Row 4: project picker button
+    projectPickerButton.setBounds (area.removeFromTop (36));
+    area.removeFromTop (3);
 
-    // Row 5: upload + logout buttons side by side
+    // Row 5: selected project name (small, accent colour)
+    selectedProjectLabel.setBounds (area.removeFromTop (16));
+    area.removeFromTop (8);
+
+    // Row 6: upload + logout
     auto buttonRow = area.removeFromTop (36);
-    logoutButton.setBounds  (buttonRow.removeFromRight (110));
+    logoutButton.setBounds (buttonRow.removeFromRight (110));
     buttonRow.removeFromRight (8);
-    uploadButton.setBounds  (buttonRow);
+    uploadButton.setBounds (buttonRow);
 
-    // Row 6: status
+    // Row 7: status
     area.removeFromTop (8);
     uploadStatusLabel.setBounds (area.removeFromTop (24));
 }
 
 // ─── Visibility toggle ────────────────────────────────────────────────────────
 
-void HolaMundoPluginAudioProcessorEditor::refreshVisibility()
+void MixSpaceAudioProcessorEditor::refreshVisibility()
 {
     const bool loggedIn = (audioProcessor.getAuthState() == AuthState::LoggedIn);
 
-    loginButton.setVisible       (!loggedIn);
-    loginStatusLabel.setVisible  (!loggedIn);
+    loginButton.setVisible        (!loggedIn);
+    loginStatusLabel.setVisible   (!loggedIn);
 
-    chooseFileButton.setVisible  (loggedIn);
-    fileNameLabel.setVisible     (loggedIn);
-    descriptionEditor.setVisible (loggedIn);
-    projectIdEditor.setVisible   (loggedIn);
-    uploadButton.setVisible      (loggedIn);
-    logoutButton.setVisible      (loggedIn);
-    uploadStatusLabel.setVisible (loggedIn);
+    chooseFileButton.setVisible      (loggedIn);
+    fileNameLabel.setVisible         (loggedIn);
+    descriptionEditor.setVisible     (loggedIn);
+    projectPickerButton.setVisible   (loggedIn);
+    selectedProjectLabel.setVisible  (loggedIn);
+    uploadButton.setVisible          (loggedIn);
+    logoutButton.setVisible          (loggedIn);
+    uploadStatusLabel.setVisible     (loggedIn);
 
-    // Trigger a fresh layout pass — do NOT call resized() directly here
-    // because resized() is already called by JUCE when visibility changes
-    // on child components. We just need to repaint.
     resized();
 }
 
 // ─── File picker ──────────────────────────────────────────────────────────────
 
-void HolaMundoPluginAudioProcessorEditor::handleChooseFile()
+void MixSpaceAudioProcessorEditor::handleChooseFile()
 {
     auto chooser = std::make_shared<juce::FileChooser> (
         "Seleccionar proyecto FL Studio",
@@ -271,44 +285,73 @@ void HolaMundoPluginAudioProcessorEditor::handleChooseFile()
                 name = name.substring (0, 37) + "...";
 
             fileNameLabel.setText (name, juce::dontSendNotification);
-            fileNameLabel.setColour (juce::Label::textColourId,
-                                     juce::Colour (COL_TEXT));
+            fileNameLabel.setColour (juce::Label::textColourId, juce::Colour (COL_TEXT));
         });
+}
+
+// ─── Project picker popup ─────────────────────────────────────────────────────
+
+void MixSpaceAudioProcessorEditor::showProjectPicker()
+{
+    const auto& projects = audioProcessor.getCachedProjects();
+
+    // Build the content component on the heap; CallOutBox owns it
+    auto* content = new ProjectPickerContent (projects);
+
+    content->onSelected = [this] (const Project& picked)
+    {
+        selectedProject    = picked;
+        hasSelectedProject = true;
+
+        projectPickerButton.setButtonText (picked.name);
+        projectPickerButton.setColour (juce::TextButton::textColourOffId,
+                                       juce::Colour (COL_TEXT));
+
+        selectedProjectLabel.setText ("ID: " + picked.id, juce::dontSendNotification);
+
+        // Close the CallOutBox by finding it in the parent hierarchy
+        if (auto* box = content->findParentComponentOfClass<juce::CallOutBox>())
+            box->dismiss();
+    };
+
+    // Place the popup anchored to the picker button
+    auto& box = juce::CallOutBox::launchAsynchronously (
+        std::unique_ptr<juce::Component> (content),
+        getLocalArea (&projectPickerButton, projectPickerButton.getLocalBounds()),
+        this);
+
+    box.setColour (juce::CallOutBox::backgroundColourId, juce::Colour (0xff2a2a2a));
 }
 
 // ─── Upload trigger ───────────────────────────────────────────────────────────
 
-void HolaMundoPluginAudioProcessorEditor::handleUpload()
+void MixSpaceAudioProcessorEditor::handleUpload()
 {
     if (!selectedFile.existsAsFile())
     {
         uploadStatusLabel.setText ("Primero selecciona un archivo .flp",
                                    juce::dontSendNotification);
-        uploadStatusLabel.setColour (juce::Label::textColourId,
-                                     juce::Colour (COL_ERROR));
+        uploadStatusLabel.setColour (juce::Label::textColourId, juce::Colour (COL_ERROR));
         return;
     }
 
     const juce::String description = descriptionEditor.getText().trim();
-    const juce::String projectId   = projectIdEditor.getText().trim();
 
     if (description.isEmpty())
     {
         uploadStatusLabel.setText ("La descripcion es obligatoria",
                                    juce::dontSendNotification);
-        uploadStatusLabel.setColour (juce::Label::textColourId,
-                                     juce::Colour (COL_ERROR));
+        uploadStatusLabel.setColour (juce::Label::textColourId, juce::Colour (COL_ERROR));
         return;
     }
 
-    if (projectId.isEmpty())
+    if (!hasSelectedProject)
     {
-        uploadStatusLabel.setText ("El ID del proyecto es obligatorio",
+        uploadStatusLabel.setText ("Selecciona un proyecto primero",
                                    juce::dontSendNotification);
-        uploadStatusLabel.setColour (juce::Label::textColourId,
-                                     juce::Colour (COL_ERROR));
+        uploadStatusLabel.setColour (juce::Label::textColourId, juce::Colour (COL_ERROR));
         return;
     }
 
-    audioProcessor.uploadVersion (selectedFile, description, projectId);
+    audioProcessor.uploadVersion (selectedFile, description, selectedProject.id);
 }

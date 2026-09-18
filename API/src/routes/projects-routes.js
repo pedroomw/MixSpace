@@ -3,16 +3,14 @@ import authMiddleware from '../middlewares/auth-middleware.js'
 import ProjectsController from "../controllers/projects-controller.js";
 
 const router = Router()
-
 const controller = new ProjectsController();
 
-router.get('/', (req, res) => {
-    res.json({ mensaje: 'Endpoint de proyectos' })
-})
-
+// All project routes require auth
 router.use(authMiddleware)
 
-router.get('/mine' , controller.GetProjectsByUserID)
+// GET /projects      — used by the plugin and the frontend
+// GET /projects/mine — legacy alias, same behaviour
+router.get('/',     controller.GetProjectsByUserID)
+router.get('/mine', controller.GetProjectsByUserID)
 
 export default router
-

@@ -19,21 +19,28 @@ function Login({ onLoginSuccess }) {
                 : await loginUser(email, password)
 
             if (isRegistering) {
-                // Register returns { user, session } from Supabase
                 if (data.session) {
+                    const user = { ...data.user, email: data.user.email || email }
                     localStorage.setItem('mixspace_token', data.session.access_token)
-                    localStorage.setItem('mixspace_user', JSON.stringify(data.user))
-                    onLoginSuccess(data.user)
+                    localStorage.setItem('mixspace_user', JSON.stringify(user))
+                    onLoginSuccess(user)
                 } else {
                     setError('Registro exitoso. Revisá tu email para confirmar la cuenta.')
                 }
             } else {
                 // Login returns a bare JWT string
                 const token = data
+                // Decode the email from the JWT payload (it's not a secret)
+                let username = email
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]))
+                    if (payload.email) username = payload.email
+                } catch (_) { /* use raw email as fallback */ }
+
+                const user = { token, email: username }
                 localStorage.setItem('mixspace_token', token)
-                // Store a minimal user object so App.jsx can restore the session
-                localStorage.setItem('mixspace_user', JSON.stringify({ token }))
-                onLoginSuccess({ token })
+                localStorage.setItem('mixspace_user', JSON.stringify(user))
+                onLoginSuccess(user)
             }
         } catch (err) {
             const message = err.response?.data?.error || 'Ocurrió un error, intentá de nuevo'
@@ -46,7 +53,16 @@ function Login({ onLoginSuccess }) {
     return (
         <div className="login-container">
             <div className="login-box">
-                <h1>MixSpace</h1>
+                <div className="login-logo">
+                    <svg width="36" height="26" viewBox="0 0 46 32" fill="none">
+                        <rect x="0"  y="8"  width="5" height="16" rx="2.5" fill="#c084fc"/>
+                        <rect x="8"  y="4"  width="5" height="24" rx="2.5" fill="#c084fc"/>
+                        <rect x="16" y="0"  width="5" height="32" rx="2.5" fill="#c084fc"/>
+                        <rect x="24" y="6"  width="5" height="20" rx="2.5" fill="#c084fc"/>
+                        <rect x="32" y="10" width="5" height="12" rx="2.5" fill="#c084fc"/>
+                    </svg>
+                    <h1>MixSpace</h1>
+                </div>
                 <h2>{isRegistering ? 'Crear cuenta' : 'Iniciar sesión'}</h2>
 
                 <form onSubmit={handleSubmit}>

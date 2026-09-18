@@ -18,6 +18,17 @@ class VersionController{
 			res.status(500).json({ cause: error.cause|| 'upload failed' })
 		}
 	}
+
+	getVersionsByProject = async (req, res) => {
+		try {
+			const { projectId } = req.params
+			if (!projectId) return res.status(400).json({ error: 'projectId requerido' })
+			const versions = await svc.getVersionsByProject(projectId)
+			res.status(200).json(versions)
+		} catch (error) {
+			res.status(500).json({ error: error.message })
+		}
+	}
 }
 
 export default VersionController

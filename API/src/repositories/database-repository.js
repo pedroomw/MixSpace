@@ -23,6 +23,22 @@ class DatabaseRepository {
         throw (error)
       }
     }
+
+    getVersionsByProject = async (project_id) => {
+      try {
+        const { data, error } = await supabase
+          .from('Versions')
+          .select('*')
+          .eq('project_id', project_id)
+          .order('created_at', { ascending: false })
+          .throwOnError()
+        if (error) throw error
+        return data
+      } catch (error) {
+        console.log("El error es: " + error)
+        throw error
+      }
+    }
 }
 
 export default DatabaseRepository

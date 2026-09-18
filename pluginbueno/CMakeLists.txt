@@ -1,32 +1,32 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(HolaMundoPlugin VERSION 1.0.0)
+project(MixSpace VERSION 1.0.0)
 
-# Apuntá esto a donde clonaste JUCE
-add_subdirectory("C:/Users/devandroid/Desktop/JUCE-master" "JUCE-build")
+# TODO: change this path to wherever you cloned JUCE on THIS machine
+add_subdirectory("C:/Users/48793643/Downloads/JUCE" "JUCE-build")
 
-juce_add_plugin(HolaMundoPlugin
-    COMPANY_NAME "MiEmpresa"
+juce_add_plugin(MixSpace
+    COMPANY_NAME "MixSpace"
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
-    PLUGIN_MANUFACTURER_CODE Juce
-    PLUGIN_CODE Hmnd
+    PLUGIN_MANUFACTURER_CODE Mxsp
+    PLUGIN_CODE Mxsp
     FORMATS VST3
-    PRODUCT_NAME "HolaMundoPlugin")
+    PRODUCT_NAME "MixSpace")
 
-target_sources(HolaMundoPlugin
+target_sources(MixSpace
     PRIVATE
         source/PluginProcessor.cpp
         source/PluginEditor.cpp)
 
-target_compile_definitions(HolaMundoPlugin
+target_compile_definitions(MixSpace
     PUBLIC
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=1
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
-target_link_libraries(HolaMundoPlugin
+target_link_libraries(MixSpace
     PRIVATE
         juce::juce_audio_utils
         juce::juce_core

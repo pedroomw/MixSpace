@@ -74,7 +74,7 @@ void subirCambios() {
     }
 
     curl_global_cleanup();
-    return 0;
+    // void function — no return value
 }
 
 
@@ -89,7 +89,7 @@ int main(){
         std::cin >> guardarCambios;
         if(guardarCambios == "1"){
             std::cout << "Guardando cambios...";
-            std::thread t2(subirCambios)
+            std::thread t2(subirCambios);  // fixed: was missing semicolon
         }
     } else {
         std::cout << "No hay cambios detectados \n";

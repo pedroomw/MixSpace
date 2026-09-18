@@ -3,7 +3,7 @@
 
 // ─── Constructor / Destructor ────────────────────────────────────────────────
 
-HolaMundoPluginAudioProcessor::HolaMundoPluginAudioProcessor()
+MixSpaceAudioProcessor::MixSpaceAudioProcessor()
     : AudioProcessor (BusesProperties()
         .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
         .withOutput ("Output", juce::AudioChannelSet::stereo(), true))
@@ -11,25 +11,23 @@ HolaMundoPluginAudioProcessor::HolaMundoPluginAudioProcessor()
     threadPool = std::make_unique<juce::ThreadPool> (2);
 }
 
-HolaMundoPluginAudioProcessor::~HolaMundoPluginAudioProcessor()
+MixSpaceAudioProcessor::~MixSpaceAudioProcessor()
 {
-    // Signal any running poll to stop before joining threads
     authState.store (AuthState::LoggedOut);
     threadPool->removeAllJobs (true, 3000);
 }
 
 // ─── Editor factory ──────────────────────────────────────────────────────────
 
-juce::AudioProcessorEditor* HolaMundoPluginAudioProcessor::createEditor()
+juce::AudioProcessorEditor* MixSpaceAudioProcessor::createEditor()
 {
-    return new HolaMundoPluginAudioProcessorEditor (*this);
+    return new MixSpaceAudioProcessorEditor (*this);
 }
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
-void HolaMundoPluginAudioProcessor::startLoginFlow()
+void MixSpaceAudioProcessor::startLoginFlow()
 {
-    // Generate a random session ID (UUID-ish hex string)
     juce::Random rng;
     auto makeHex = [&](int len)
     {
@@ -45,12 +43,9 @@ void HolaMundoPluginAudioProcessor::startLoginFlow()
 
     pendingSessionId = sessionId;
 
-    // Update state and UI immediately (we're on the message thread here)
     authState.store (AuthState::WaitingForBrowser);
     notifyAuthChange (AuthState::WaitingForBrowser);
 
-    // All network work — including the registration POST — goes in the background
-    // so the message thread (and therefore the UI) never blocks.
     threadPool->addJob ([this, sessionId]
     {
         const juce::String registerUrl =
@@ -60,7 +55,6 @@ void HolaMundoPluginAudioProcessor::startLoginFlow()
 
         if (registerResult.isVoid())
         {
-            // API unreachable — bail out on the message thread
             juce::MessageManager::callAsync ([this]
             {
                 authState.store (AuthState::LoggedOut);
@@ -69,7 +63,6 @@ void HolaMundoPluginAudioProcessor::startLoginFlow()
             return;
         }
 
-        // Open the browser from the message thread (required on some platforms)
         juce::MessageManager::callAsync ([sessionId]
         {
             const juce::String browserUrl =
@@ -77,23 +70,20 @@ void HolaMundoPluginAudioProcessor::startLoginFlow()
             juce::URL (browserUrl).launchInDefaultBrowser();
         });
 
-        // Now poll until we get the token
         pollForToken (sessionId);
     });
 }
 
-void HolaMundoPluginAudioProcessor::pollForToken (const juce::String& sessionId)
+void MixSpaceAudioProcessor::pollForToken (const juce::String& sessionId)
 {
-    // Must be called from a background thread only.
     constexpr int POLL_INTERVAL_MS = 2000;
-    constexpr int MAX_ATTEMPTS     = 150; // 150 × 2 s = 5 min
+    constexpr int MAX_ATTEMPTS     = 150;
 
     const juce::String pollUrl =
         juce::String (API_BASE) + "/auth/plugin-session/" + sessionId;
 
     for (int attempt = 0; attempt < MAX_ATTEMPTS; ++attempt)
     {
-        // Abort if state changed (logout or new flow started)
         if (authState.load() != AuthState::WaitingForBrowser)
             return;
 
@@ -105,7 +95,7 @@ void HolaMundoPluginAudioProcessor::pollForToken (const juce::String& sessionId)
         const juce::var result = httpGet (pollUrl);
 
         if (result.isVoid())
-            continue; // network hiccup — keep polling
+            continue;
 
         const juce::String status = result["status"].toString();
 
@@ -118,6 +108,9 @@ void HolaMundoPluginAudioProcessor::pollForToken (const juce::String& sessionId)
                 token = receivedToken;
                 authState.store (AuthState::LoggedIn);
                 notifyAuthChange (AuthState::LoggedIn);
+
+                // Fetch the user's projects immediately after login
+                fetchProjects();
             });
             return;
         }
@@ -131,11 +124,8 @@ void HolaMundoPluginAudioProcessor::pollForToken (const juce::String& sessionId)
             });
             return;
         }
-
-        // status == "pending" → keep waiting
     }
 
-    // Timed out
     juce::MessageManager::callAsync ([this]
     {
         authState.store (AuthState::LoggedOut);
@@ -143,23 +133,74 @@ void HolaMundoPluginAudioProcessor::pollForToken (const juce::String& sessionId)
     });
 }
 
-void HolaMundoPluginAudioProcessor::logout()
+void MixSpaceAudioProcessor::logout()
 {
-    // Safe to call from any thread — dispatch to message thread for UI updates
     juce::MessageManager::callAsync ([this]
     {
         token.clear();
         pendingSessionId.clear();
+        cachedProjects.clear();
         authState.store (AuthState::LoggedOut);
         notifyAuthChange (AuthState::LoggedOut);
+    });
+}
+
+// ─── Projects ────────────────────────────────────────────────────────────────
+
+void MixSpaceAudioProcessor::fetchProjects()
+{
+    // Can be called from message thread or background thread.
+    const juce::String currentToken = token;
+
+    threadPool->addJob ([this, currentToken]
+    {
+        const juce::String url = juce::String (API_BASE) + "/projects";
+        const juce::var result = httpGet (url, currentToken);
+
+        juce::Array<Project> loaded;
+
+        if (!result.isVoid())
+        {
+            // API returns either an array at root or { projects: [...] }
+            const juce::var* arr = nullptr;
+
+            if (result.isArray())
+            {
+                arr = &result;
+            }
+            else if (result.isObject())
+            {
+                const juce::var& inner = result["projects"];
+                if (inner.isArray())
+                    arr = &inner;
+            }
+
+            if (arr != nullptr)
+            {
+                for (int i = 0; i < arr->size(); ++i)
+                {
+                    const juce::var& p = (*arr)[i];
+                    Project proj;
+                    proj.id   = p["id"].toString();
+                    proj.name = p["name"].toString();
+                    loaded.add (proj);
+                }
+            }
+        }
+
+        juce::MessageManager::callAsync ([this, loaded]
+        {
+            cachedProjects = loaded;
+            notifyProjectsLoaded (cachedProjects);
+        });
     });
 }
 
 // ─── Upload ──────────────────────────────────────────────────────────────────
 
-void HolaMundoPluginAudioProcessor::uploadVersion (const juce::File&   file,
-                                                    const juce::String& description,
-                                                    const juce::String& projectId)
+void MixSpaceAudioProcessor::uploadVersion (const juce::File&   file,
+                                             const juce::String& description,
+                                             const juce::String& projectId)
 {
     if (authState.load() != AuthState::LoggedIn)
     {
@@ -180,10 +221,6 @@ void HolaMundoPluginAudioProcessor::uploadVersion (const juce::File&   file,
 
     threadPool->addJob ([this, file, description, projectId, currentToken]
     {
-        // withFileToUpload triggers multipart/form-data automatically in JUCE.
-        // withParameter adds the text fields alongside the file part.
-        // We must NOT pass inPostData here — JUCE picks the right encoding
-        // when a file is present.
         juce::URL url (juce::String (API_BASE) + "/versions/upload");
         url = url.withFileToUpload ("file",        file,        "application/octet-stream");
         url = url.withParameter    ("description", description);
@@ -192,8 +229,9 @@ void HolaMundoPluginAudioProcessor::uploadVersion (const juce::File&   file,
         int statusCode = 0;
         juce::StringPairArray responseHeaders;
 
+        // inAddress lets JUCE build a proper multipart/form-data request
         auto stream = url.createInputStream (
-            juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inPostData)
+            juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inAddress)
                 .withExtraHeaders        ("Authorization: Bearer " + currentToken)
                 .withConnectionTimeoutMs (60000)
                 .withResponseHeaders     (&responseHeaders)
@@ -219,15 +257,13 @@ void HolaMundoPluginAudioProcessor::uploadVersion (const juce::File&   file,
 }
 
 // ─── Listener notification helpers ───────────────────────────────────────────
-// These must always be called on the message thread.
 
-void HolaMundoPluginAudioProcessor::notifyAuthChange (AuthState s)
+void MixSpaceAudioProcessor::notifyAuthChange (AuthState s)
 {
     authListeners.call ([s](AuthStateListener& l) { l.authStateChanged (s); });
 }
 
-void HolaMundoPluginAudioProcessor::notifyUploadChange (UploadState        s,
-                                                         const juce::String& msg)
+void MixSpaceAudioProcessor::notifyUploadChange (UploadState s, const juce::String& msg)
 {
     uploadMessage = msg;
     uploadListeners.call ([s, &msg](UploadStateListener& l)
@@ -236,11 +272,19 @@ void HolaMundoPluginAudioProcessor::notifyUploadChange (UploadState        s,
     });
 }
 
+void MixSpaceAudioProcessor::notifyProjectsLoaded (const juce::Array<Project>& projects)
+{
+    projectsListeners.call ([&projects](ProjectsListener& l)
+    {
+        l.projectsLoaded (projects);
+    });
+}
+
 // ─── HTTP helpers ─────────────────────────────────────────────────────────────
 
-juce::var HolaMundoPluginAudioProcessor::httpPost (const juce::String& urlStr,
-                                                    const juce::String& jsonBody,
-                                                    const juce::String& bearerToken)
+juce::var MixSpaceAudioProcessor::httpPost (const juce::String& urlStr,
+                                             const juce::String& jsonBody,
+                                             const juce::String& bearerToken)
 {
     juce::URL url (urlStr);
     url = url.withPOSTData (jsonBody);
@@ -262,12 +306,11 @@ juce::var HolaMundoPluginAudioProcessor::httpPost (const juce::String& urlStr,
     if (stream == nullptr)
         return {};
 
-    const juce::String body = stream->readEntireStreamAsString();
-    return juce::JSON::parse (body);
+    return juce::JSON::parse (stream->readEntireStreamAsString());
 }
 
-juce::var HolaMundoPluginAudioProcessor::httpGet (const juce::String& urlStr,
-                                                   const juce::String& bearerToken)
+juce::var MixSpaceAudioProcessor::httpGet (const juce::String& urlStr,
+                                            const juce::String& bearerToken)
 {
     juce::URL url (urlStr);
 
@@ -288,13 +331,12 @@ juce::var HolaMundoPluginAudioProcessor::httpGet (const juce::String& urlStr,
     if (stream == nullptr)
         return {};
 
-    const juce::String body = stream->readEntireStreamAsString();
-    return juce::JSON::parse (body);
+    return juce::JSON::parse (stream->readEntireStreamAsString());
 }
 
 // ─── Plugin factory ───────────────────────────────────────────────────────────
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new HolaMundoPluginAudioProcessor();
+    return new MixSpaceAudioProcessor();
 }

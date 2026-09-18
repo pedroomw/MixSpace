@@ -4,8 +4,16 @@
 
 // ─── States ──────────────────────────────────────────────────────────────────
 
-enum class AuthState  { LoggedOut, WaitingForBrowser, LoggedIn };
+enum class AuthState   { LoggedOut, WaitingForBrowser, LoggedIn };
 enum class UploadState { Idle, Uploading, Success, Error };
+
+// ─── Data ────────────────────────────────────────────────────────────────────
+
+struct Project
+{
+    juce::String id;
+    juce::String name;
+};
 
 // ─── Listener interfaces ─────────────────────────────────────────────────────
 
@@ -22,23 +30,29 @@ struct UploadStateListener
                                      const juce::String& message) = 0;
 };
 
+struct ProjectsListener
+{
+    virtual ~ProjectsListener() = default;
+    virtual void projectsLoaded (const juce::Array<Project>& projects) = 0;
+};
+
 // ─── Processor ───────────────────────────────────────────────────────────────
 
-class HolaMundoPluginAudioProcessor : public juce::AudioProcessor
+class MixSpaceAudioProcessor : public juce::AudioProcessor
 {
 public:
-    HolaMundoPluginAudioProcessor();
-    ~HolaMundoPluginAudioProcessor() override;
+    MixSpaceAudioProcessor();
+    ~MixSpaceAudioProcessor() override;
 
     // ── AudioProcessor boilerplate ─────────────────────────────────────────
-    void prepareToPlay (double, int) override {}
+    void prepareToPlay  (double, int) override {}
     void releaseResources() override {}
-    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override {}
+    void processBlock   (juce::AudioBuffer<float>&, juce::MidiBuffer&) override {}
 
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
 
-    const juce::String getName() const override { return "HolaMundoPlugin"; }
+    const juce::String getName() const override { return "MixSpace"; }
     bool acceptsMidi()  const override { return false; }
     bool producesMidi() const override { return false; }
     double getTailLengthSeconds() const override { return 0.0; }
@@ -49,22 +63,32 @@ public:
     const juce::String getProgramName (int) override { return {}; }
     void changeProgramName (int, const juce::String&) override {}
 
-    void getStateInformation (juce::MemoryBlock&)       override {}
-    void setStateInformation (const void*, int)         override {}
+    void getStateInformation (juce::MemoryBlock&)   override {}
+    void setStateInformation (const void*, int)     override {}
 
     // ── Auth ───────────────────────────────────────────────────────────────
 
     /** Generates a session ID, registers it on the API, opens the browser,
      *  and starts polling. Thread-safe to call from the message thread. */
     void startLoginFlow();
-
     void logout();
 
-    AuthState  getAuthState()  const { return authState.load(); }
-    juce::String getToken()    const { return token; }
+    AuthState    getAuthState() const { return authState.load(); }
+    juce::String getToken()     const { return token; }
 
-    void addAuthListener    (AuthStateListener*    l) { authListeners.add (l); }
-    void removeAuthListener (AuthStateListener*    l) { authListeners.remove (l); }
+    void addAuthListener    (AuthStateListener* l) { authListeners.add (l); }
+    void removeAuthListener (AuthStateListener* l) { authListeners.remove (l); }
+
+    // ── Projects ───────────────────────────────────────────────────────────
+
+    /** Fetches /projects from the API on a background thread.
+     *  Calls projectsLoaded() on all listeners when done. */
+    void fetchProjects();
+
+    const juce::Array<Project>& getCachedProjects() const { return cachedProjects; }
+
+    void addProjectsListener    (ProjectsListener* l) { projectsListeners.add (l); }
+    void removeProjectsListener (ProjectsListener* l) { projectsListeners.remove (l); }
 
     // ── Upload ─────────────────────────────────────────────────────────────
 
@@ -92,6 +116,9 @@ private:
 
     void pollForToken (const juce::String& sessionId);
 
+    // ── Projects internals ─────────────────────────────────────────────────
+    juce::Array<Project> cachedProjects;
+
     // ── Upload internals ───────────────────────────────────────────────────
     std::atomic<UploadState> uploadState { UploadState::Idle };
     juce::String             uploadMessage;
@@ -99,21 +126,21 @@ private:
     // ── Listeners ──────────────────────────────────────────────────────────
     juce::ListenerList<AuthStateListener>   authListeners;
     juce::ListenerList<UploadStateListener> uploadListeners;
+    juce::ListenerList<ProjectsListener>    projectsListeners;
 
-    void notifyAuthChange  (AuthState s);
-    void notifyUploadChange (UploadState s, const juce::String& msg);
+    void notifyAuthChange    (AuthState s);
+    void notifyUploadChange  (UploadState s, const juce::String& msg);
+    void notifyProjectsLoaded (const juce::Array<Project>& projects);
 
     // ── HTTP helpers ───────────────────────────────────────────────────────
     static constexpr const char* API_BASE = "http://localhost:3000";
 
-    /** POST JSON body, returns parsed result or null var on failure. */
     static juce::var httpPost (const juce::String& url,
                                const juce::String& jsonBody,
                                const juce::String& bearerToken = {});
 
-    /** GET, returns parsed result or null var on failure. */
     static juce::var httpGet  (const juce::String& url,
                                const juce::String& bearerToken = {});
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HolaMundoPluginAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MixSpaceAudioProcessor)
 };

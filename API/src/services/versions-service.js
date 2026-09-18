@@ -16,6 +16,15 @@ class SupabaseService {
       }
     }
 
+    getVersionsByProject = async (project_id) => {
+      try {
+        const repo = new DatabaseRepository()
+        return await repo.getVersionsByProject(project_id)
+      } catch (error) {
+        throw error
+      }
+    }
+
     uploadVersionToDatabase = async (description, project_id, filename) => {
       try{
         const repo = new DatabaseRepository()
