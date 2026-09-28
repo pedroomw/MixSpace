@@ -45,6 +45,7 @@ void MixSpaceAudioProcessor::startLoginFlow()
 
     authState.store (AuthState::WaitingForBrowser);
     notifyAuthChange (AuthState::WaitingForBrowser);
+    lastLoginError.clear();
 
     threadPool->addJob ([this, sessionId]
     {
@@ -57,6 +58,7 @@ void MixSpaceAudioProcessor::startLoginFlow()
         {
             juce::MessageManager::callAsync ([this]
             {
+                lastLoginError = "No se pudo conectar con la API (localhost:3000)";
                 authState.store (AuthState::LoggedOut);
                 notifyAuthChange (AuthState::LoggedOut);
             });
@@ -65,9 +67,9 @@ void MixSpaceAudioProcessor::startLoginFlow()
 
         juce::MessageManager::callAsync ([sessionId]
         {
-            const juce::String browserUrl =
-                "http://localhost:5173?sessionId=" + sessionId;
-            juce::URL (browserUrl).launchInDefaultBrowser();
+            // The editor's embedded WebBrowserComponent handles navigation —
+            // no external browser needed. This block is intentionally empty.
+            juce::ignoreUnused (sessionId);
         });
 
         pollForToken (sessionId);

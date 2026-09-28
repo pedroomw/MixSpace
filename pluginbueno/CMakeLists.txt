@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 3.22)
 project(MixSpace VERSION 1.0.0)
 
 # TODO: change this path to wherever you cloned JUCE on THIS machine
-add_subdirectory("C:/Users/48793643/Downloads/JUCE" "JUCE-build")
-
+add_subdirectory("C:/Users/devandroid/Desktop/JUCE-master" "JUCE-build")
 juce_add_plugin(MixSpace
     COMPANY_NAME "MixSpace"
     IS_SYNTH FALSE
@@ -22,7 +21,7 @@ target_sources(MixSpace
 
 target_compile_definitions(MixSpace
     PUBLIC
-        JUCE_WEB_BROWSER=0
+        JUCE_WEB_BROWSER=1
         JUCE_USE_CURL=1
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
@@ -30,6 +29,7 @@ target_link_libraries(MixSpace
     PRIVATE
         juce::juce_audio_utils
         juce::juce_core
+        juce::juce_gui_extra
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

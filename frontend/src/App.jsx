@@ -4,7 +4,8 @@ import Login from './components/Login';
 import HomeHero from './components/HomeHero';
 import ProjectSidebar from './components/ProjectSidebar';
 import ProjectDetail from './components/ProjectDetail';
-import { getProjects, resolvePluginSession } from './services/apiClient';
+import CreateProjectModal from './components/CreateProjectModal';
+import { getProjects, createProject, resolvePluginSession } from './services/apiClient';
 import './App.css';
 
 function App() {
@@ -15,6 +16,11 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+
+  // Create project modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creatingProject, setCreatingProject] = useState(false);
+  const [createError, setCreateError] = useState(null);
 
   // Plugin session banner
   const [pluginSessionStatus, setPluginSessionStatus] = useState(null);
@@ -66,6 +72,38 @@ function App() {
     setUser(u);
   };
 
+  const handleOpenCreateModal = () => {
+    setCreateError(null);
+    setShowCreateModal(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    if (creatingProject) return;
+    setShowCreateModal(false);
+    setCreateError(null);
+  };
+
+  const handleCreateProject = async ({ name, description }) => {
+    setCreatingProject(true);
+    setCreateError(null);
+
+    const result = await createProject({ name, description });
+
+    setCreatingProject(false);
+
+    if (!result.ok) {
+      setCreateError(result.error);
+      return;
+    }
+
+    // Refresh the full project list so the sidebar stays in sync
+    const listResult = await getProjects();
+    if (listResult.ok) setProjects(listResult.projects);
+
+    setShowCreateModal(false);
+    setCreateError(null);
+  };
+
   // Derive display name for the hero
   const heroName = (() => {
     const email = user?.email || '';
@@ -96,7 +134,7 @@ function App() {
         <main className="workspace-main">
           {selectedProject
             ? <ProjectDetail project={selectedProject} key={selectedProject.id} />
-            : <HomeHero username={heroName} onCreateProject={() => {}} />
+            : <HomeHero username={heroName} onCreateProject={handleOpenCreateModal} />
           }
         </main>
 
@@ -108,6 +146,15 @@ function App() {
           loading={loadingProjects}
         />
       </div>
+
+      {/* Create project modal */}
+      <CreateProjectModal
+        open={showCreateModal}
+        onClose={handleCloseCreateModal}
+        onSubmit={handleCreateProject}
+        loading={creatingProject}
+        error={createError}
+      />
 
       <footer className="app-footer">
         <div className="footer-inner">

@@ -10,10 +10,10 @@ class ProjectsService {
         return projects
     }
 
-    CreateProjects = async (userID, name, description) => {
+    CreateProject = async (userID, name, description) => {
         if (!userID) throw new Error('userID es requerido')
         const project = await repo.CreateProject(userID, name, description)
-        return projects
+        return project
     }
 }
 

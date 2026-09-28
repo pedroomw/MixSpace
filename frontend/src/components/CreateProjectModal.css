@@ -1,0 +1,220 @@
+/* ── Overlay ─────────────────────────────────────────────── */
+.cpm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: cpm-fade-in var(--transition-fast) ease;
+}
+
+@keyframes cpm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Panel ───────────────────────────────────────────────── */
+.cpm-panel {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  animation: cpm-slide-up var(--transition-fast) ease;
+}
+
+@keyframes cpm-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.cpm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+}
+
+.cpm-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cpm-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.cpm-close:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.cpm-close:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Form ────────────────────────────────────────────────── */
+.cpm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px 24px;
+}
+
+/* ── Field ───────────────────────────────────────────────── */
+.cpm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cpm-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+}
+
+.cpm-required {
+  color: var(--accent-primary);
+  margin-left: 2px;
+}
+
+.cpm-optional {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.cpm-input,
+.cpm-textarea {
+  background: var(--bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 13px;
+  padding: 9px 12px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  resize: none;
+  width: 100%;
+}
+
+.cpm-input::placeholder,
+.cpm-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.cpm-input:focus,
+.cpm-textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.15);
+}
+
+.cpm-input--error {
+  border-color: var(--color-error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+}
+
+.cpm-input:disabled,
+.cpm-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cpm-field-error {
+  font-size: 11px;
+  color: var(--color-error);
+}
+
+/* ── Error banner ────────────────────────────────────────── */
+.cpm-error-banner {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  color: #fca5a5;
+  font-size: 12px;
+  padding: 10px 12px;
+}
+
+/* ── Actions ─────────────────────────────────────────────── */
+.cpm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.cpm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.cpm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.cpm-btn--ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+}
+
+.cpm-btn--ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cpm-btn--primary {
+  background: var(--accent-secondary);
+  color: #fff;
+}
+
+.cpm-btn--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.cpm-btn--primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* ── Spinner ─────────────────────────────────────────────── */
+.cpm-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: cpm-spin 0.7s linear infinite;
+}
+
+@keyframes cpm-spin {
+  to { transform: rotate(360deg); }
+}

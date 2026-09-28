@@ -122,8 +122,44 @@ export async function uploadFile({ file, description, project_id }) {
   }
 }
 
+/**
+ * Create a new project for the authenticated user
+ * @param {Object} projectData
+ * @param {string} projectData.name        - Project name (required)
+ * @param {string} [projectData.description] - Optional description
+ * @returns {Promise<{ok: boolean, project?: Object, error?: string}>}
+ */
+export async function createProject({ name, description = '' }) {
+  try {
+    const token = localStorage.getItem('mixspace_token');
+
+    const response = await apiClient.post(
+      '/projects',
+      { name, description },
+      { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+    );
+
+    return { ok: true, project: response.data };
+  } catch (error) {
+    let errorMessage = 'No se pudo crear el proyecto';
+
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'No se pudo conectar con el servidor';
+    } else if (error.response?.status === 401) {
+      errorMessage = 'Sesión expirada. Volvé a iniciar sesión';
+    } else if (error.response?.status === 400) {
+      errorMessage = error.response.data?.error || 'Datos inválidos';
+    } else if (error.response) {
+      errorMessage = error.response.data?.error || errorMessage;
+    }
+
+    return { ok: false, error: errorMessage };
+  }
+}
+
 export default {
   resolvePluginSession,
   getProjects,
+  createProject,
   uploadFile
 };

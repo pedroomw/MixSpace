@@ -103,6 +103,17 @@ public:
     UploadState  getUploadState()   const { return uploadState.load(); }
     juce::String getUploadMessage() const { return uploadMessage; }
 
+    /** Last connection error message (set when startLoginFlow fails to reach the API) */
+    juce::String getLastLoginError() const { return lastLoginError; }
+
+    /** Returns the URL the embedded browser should load to complete login.
+     *  Empty string if no session is pending. */
+    juce::String getLoginUrl() const
+    {
+        if (pendingSessionId.isEmpty()) return {};
+        return "http://localhost:5173?sessionId=" + pendingSessionId;
+    }
+
     void addUploadListener    (UploadStateListener* l) { uploadListeners.add (l); }
     void removeUploadListener (UploadStateListener* l) { uploadListeners.remove (l); }
 
@@ -111,6 +122,7 @@ private:
     std::atomic<AuthState>  authState  { AuthState::LoggedOut };
     juce::String            token;
     juce::String            pendingSessionId;
+    juce::String            lastLoginError;
 
     std::unique_ptr<juce::ThreadPool> threadPool;
 
