@@ -30,12 +30,12 @@ class DatabaseRepository {
           .from('Versions')
           .select('*')
           .eq('project_id', project_id)
-          .order('created_at', { ascending: false })
+          .order('uploaded_at', { ascending: false })
           .throwOnError()
         if (error) throw error
-        return data
+        return data ?? []
       } catch (error) {
-        console.log("El error es: " + error)
+        console.log("Error en getVersionsByProject:", error)
         throw error
       }
     }

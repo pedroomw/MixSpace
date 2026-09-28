@@ -9,6 +9,7 @@ juce_add_plugin(MixSpace
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
+    NEEDS_WEBVIEW2 TRUE
     PLUGIN_MANUFACTURER_CODE Mxsp
     PLUGIN_CODE Mxsp
     FORMATS VST3
@@ -22,6 +23,7 @@ target_sources(MixSpace
 target_compile_definitions(MixSpace
     PUBLIC
         JUCE_WEB_BROWSER=1
+        JUCE_USE_WIN_WEBVIEW2=1
         JUCE_USE_CURL=1
         JUCE_VST3_CAN_REPLACE_VST2=0)
 

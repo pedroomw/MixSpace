@@ -23,9 +23,12 @@ class VersionController{
 		try {
 			const { projectId } = req.params
 			if (!projectId) return res.status(400).json({ error: 'projectId requerido' })
+			console.log(`[versions] getVersionsByProject projectId="${projectId}" user="${req.user?.userId}"`)
 			const versions = await svc.getVersionsByProject(projectId)
+			console.log(`[versions] resultado: ${JSON.stringify(versions?.length ?? versions)}`)
 			res.status(200).json(versions)
 		} catch (error) {
+			console.log(`[versions] error en getVersionsByProject: ${error.message}`)
 			res.status(500).json({ error: error.message })
 		}
 	}

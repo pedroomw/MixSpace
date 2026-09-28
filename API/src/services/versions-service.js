@@ -7,11 +7,15 @@ class SupabaseService {
     uploadVersion = async (description, project_id, file) => {
       try{
         const filename = setFileName(file.originalname)
+        console.log(`[upload] description="${description}" project_id="${project_id}" filename="${filename}"`)
         const resultadoDatabase = await this.uploadVersionToDatabase(description, project_id, filename)
+        console.log(`[upload] DB insert OK:`, JSON.stringify(resultadoDatabase))
         const resultadoStorage = await this.uploadFileToStorage(filename, file)
+        console.log(`[upload] Storage upload OK:`, JSON.stringify(resultadoStorage))
         return ("Metadata y archivos subidos correctamente a la base de datos")
       }
       catch(error){
+        console.log(`[upload] ERROR:`, error)
         throw error
       }
     }

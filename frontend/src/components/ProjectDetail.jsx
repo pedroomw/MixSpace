@@ -1,16 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { uploadFile } from '../services/apiClient';
+import axios from 'axios';
 import './ProjectDetail.css';
 
 const API_BASE = 'http://localhost:3000';
 
 async function fetchVersions(projectId) {
   const token = localStorage.getItem('mixspace_token');
-  const res = await fetch(`${API_BASE}/versions/project/${projectId}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {}
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  try {
+    const response = await axios.get(`${API_BASE}/versions/project/${projectId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (err) {
+    const status = err.response?.status;
+    const msg    = err.response?.data?.error || err.message || 'Error desconocido';
+    throw new Error(`HTTP ${status ?? 'red'}: ${msg}`);
+  }
 }
 
 function formatBytes(bytes) {
@@ -125,9 +131,9 @@ function ProjectDetail({ project }) {
     setVersionsError('');
     try {
       const data = await fetchVersions(project.id);
-      setVersions(Array.isArray(data) ? data : []);
+      setVersions(data);
     } catch (err) {
-      setVersionsError('No se pudieron cargar las versiones');
+      setVersionsError(`No se pudieron cargar las versiones (${err.message})`);
     } finally {
       setLoadingVersions(false);
     }
@@ -234,7 +240,7 @@ function ProjectDetail({ project }) {
                   <div className="version-item-info">
                     <span className="version-item-name">{v.description || v.filename}</span>
                     <span className="version-item-meta">
-                      {formatDate(v.created_at)}
+                      {formatDate(v.uploaded_at || v.created_at)}
                       {v.size ? ` · ${formatBytes(v.size)}` : ''}
                     </span>
                   </div>

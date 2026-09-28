@@ -19,15 +19,19 @@ public:
 private:
     MixSpaceAudioProcessor& audioProcessor;
 
-    // Give WebView2 a dedicated user-data folder so it can initialise
-    // correctly when hosted inside FL Studio's process.
+    // Explicitly request the WebView2 (Chromium) backend on Windows.
+    // Without this JUCE defaults to the legacy IE engine which renders nothing.
+    // We also provide a dedicated user-data folder so WebView2 can initialise
+    // correctly inside FL Studio's process.
     static juce::WebBrowserComponent::Options makeBrowserOptions()
     {
         const auto dataFolder = juce::File::getSpecialLocation (
             juce::File::userApplicationDataDirectory)
-            .getChildFile ("MixSpace").getChildFile ("WebView2");
+            .getChildFile ("MixSpace")
+            .getChildFile ("WebView2");
 
         return juce::WebBrowserComponent::Options{}
+            .withBackend (juce::WebBrowserComponent::Options::Backend::webview2)
             .withKeepPageLoadedWhenBrowserIsHidden()
             .withWinWebView2Options (
                 juce::WebBrowserComponent::Options::WinWebView2{}
