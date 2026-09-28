@@ -13,8 +13,19 @@ class ProjectsController{
         catch(error){
             res.status(500).json({ error: error.message })
         }
-		
 	}
+
+    CreateProject = async (req, res) => {
+        try {
+            const userID = req.user.userId
+            const name = req.body.name
+            const description = req.body.description
+            const result = await svc.CreateProject(userID, name, description)
+            res.status(200).json(result)
+        } catch(error){
+            res.status(500).json({ error: error.message })
+        }
+    }
 }
 
 export default ProjectsController

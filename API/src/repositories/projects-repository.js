@@ -26,6 +26,22 @@ class ProjectsRepository {
             throw error
         }
     }
+
+    CreateProject = async (userID, name, description) => {
+        try {
+            const { data, error } = await supabase
+                .from('Projects')
+                .insert([{name: name, description: description, user_id: userID}])
+                .throwOnError()
+            if(error) {
+                throw error
+            }
+            return data
+        } catch (error) {
+            console.log("El error es: " + error)
+            throw error
+        }
+    }
 }
 
 export default ProjectsRepository

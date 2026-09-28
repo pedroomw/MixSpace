@@ -12,5 +12,6 @@ router.use(authMiddleware)
 // GET /projects/mine — legacy alias, same behaviour
 router.get('/',     controller.GetProjectsByUserID)
 router.get('/mine', controller.GetProjectsByUserID)
+router.post('/', controller.CreateProject)
 
 export default router
