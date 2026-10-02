@@ -20,6 +20,17 @@ class SupabaseService {
       }
     }
 
+    downloadVersion = async (id) => {
+      const dbRepo = new DatabaseRepository()
+      const version = await dbRepo.getVersionById(id)
+      if (!version) throw new Error('Versión no encontrada')
+
+      const storageRepo = new StorageRepository()
+      // URL firmada válida 60 segundos — suficiente para iniciar la descarga
+      const signedUrl = await storageRepo.getSignedUrl(version.filename, 60)
+      return { signedUrl, filename: version.filename }
+    }
+
     getVersionsByProject = async (project_id) => {
       try {
         const repo = new DatabaseRepository()

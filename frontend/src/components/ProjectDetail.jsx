@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { uploadFile } from '../services/apiClient';
+import { uploadFile, downloadVersion } from '../services/apiClient';
 import axios from 'axios';
 import './ProjectDetail.css';
 
@@ -33,11 +33,30 @@ function formatDate(iso) {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// ─── Upload drawer ────────────────────────────────────────────────────────────
-function UploadDrawer({ projectId, onSuccess, onClose }) {
+// ─── Decorative waveform ──────────────────────────────────────────────────────
+function WaveformDecor() {
+  const bars = [
+    [0,28,8],[14,20,24],[28,10,44],[42,16,32],[56,4,56],
+    [70,14,36],[84,22,20],[98,8,48],[112,18,28],[126,6,52],
+    [140,24,16],[154,12,40],[168,2,60],[182,16,32],[196,26,12],
+    [210,10,44],[224,20,24],[238,8,48],[252,18,28],[266,28,8],
+    [280,14,36],[294,22,20],[308,10,44],
+  ];
+  return (
+    <svg className="project-decor-wave" viewBox="0 0 320 64" fill="none" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+      {bars.map(([x, y, h], i) => (
+        <rect key={i} x={x} y={y} width="8" height={h} rx="4"
+          fill="#c084fc" opacity={0.10 + (i % 5) * 0.035} />
+      ))}
+    </svg>
+  );
+}
+
+// ─── Upload modal ─────────────────────────────────────────────────────────────
+function UploadModal({ projectId, onSuccess, onClose }) {
   const [file, setFile] = useState(null);
   const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('idle'); // idle | uploading | success | error
+  const [status, setStatus] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const fileInputRef = useRef();
 
@@ -45,18 +64,12 @@ function UploadDrawer({ projectId, onSuccess, onClose }) {
     e.preventDefault();
     if (!file) { setErrorMsg('Seleccioná un archivo .flp'); return; }
     if (!description.trim()) { setErrorMsg('La descripción es obligatoria'); return; }
-
     setStatus('uploading');
     setErrorMsg('');
-
     const result = await uploadFile({ file, description: description.trim(), project_id: projectId });
-
     if (result.ok) {
       setStatus('success');
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 1200);
+      setTimeout(() => { onSuccess(); onClose(); }, 1100);
     } else {
       setStatus('error');
       setErrorMsg(result.error || 'Error al subir');
@@ -64,62 +77,67 @@ function UploadDrawer({ projectId, onSuccess, onClose }) {
   };
 
   return (
-    <div className="upload-drawer">
-      <div className="upload-drawer-header">
-        <span>Subir versión</span>
-        <button className="drawer-close-btn" onClick={onClose} aria-label="Cerrar">✕</button>
-      </div>
-
-      <form className="upload-drawer-form" onSubmit={handleSubmit}>
-        {/* File row */}
-        <div className="drawer-field">
-          <input
-            ref={fileInputRef}
-            id="drawer-file"
-            type="file"
-            accept=".flp"
-            className="hidden-input"
-            disabled={status === 'uploading'}
-            onChange={(e) => { setFile(e.target.files?.[0] || null); setErrorMsg(''); }}
-          />
-          <label htmlFor="drawer-file" className={`drawer-file-btn${status === 'uploading' ? ' disabled' : ''}`}>
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M2 5a2 2 0 012-2h3.586a1 1 0 01.707.293L9.707 4.707A1 1 0 0010.414 5H16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V5z" />
+    <div className="upload-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="upload-modal">
+        <div className="upload-modal-header">
+          <div className="upload-modal-title">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd"/>
             </svg>
-            {file ? file.name.length > 28 ? file.name.slice(0, 26) + '…' : file.name : 'Elegir .flp'}
+            Subir versión
+          </div>
+          <button className="upload-modal-close" onClick={onClose} aria-label="Cerrar">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+
+        <form className="upload-modal-form" onSubmit={handleSubmit}>
+          <input ref={fileInputRef} id="modal-file" type="file" accept=".flp"
+            className="hidden-input" disabled={status === 'uploading'}
+            onChange={(e) => { setFile(e.target.files?.[0] || null); setErrorMsg(''); }} />
+
+          <label htmlFor="modal-file" className={`modal-file-zone${file ? ' has-file' : ''}${status === 'uploading' ? ' disabled' : ''}`}>
+            {file ? (
+              <>
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" style={{color:'var(--accent-primary)'}}>
+                  <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
+                  <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                </svg>
+                <span className="modal-file-name">{file.name.length > 32 ? file.name.slice(0,30)+'…' : file.name}</span>
+                <span className="modal-file-change">Cambiar archivo</span>
+              </>
+            ) : (
+              <>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{color:'var(--text-muted)'}}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/>
+                </svg>
+                <span className="modal-file-label">Elegí un archivo <strong>.flp</strong></span>
+              </>
+            )}
           </label>
-        </div>
 
-        {/* Description */}
-        <div className="drawer-field">
-          <input
-            type="text"
-            placeholder="Descripción de la versión…"
-            className="drawer-input"
-            value={description}
-            maxLength={200}
-            disabled={status === 'uploading'}
-            onChange={(e) => { setDescription(e.target.value); setErrorMsg(''); }}
-          />
-        </div>
+          <input type="text" placeholder="Descripción de la versión…" className="modal-input"
+            value={description} maxLength={200} disabled={status === 'uploading'}
+            onChange={(e) => { setDescription(e.target.value); setErrorMsg(''); }} />
 
-        {errorMsg && <p className="drawer-error">{errorMsg}</p>}
+          {errorMsg && <p className="modal-error">{errorMsg}</p>}
 
-        <button
-          type="submit"
-          className={`drawer-submit-btn${status === 'uploading' ? ' loading' : ''}${status === 'success' ? ' success' : ''}`}
-          disabled={status === 'uploading' || status === 'success'}
-        >
-          {status === 'uploading' && <span className="btn-spinner" />}
-          {status === 'success' ? '✓ Subido' : status === 'uploading' ? 'Subiendo…' : 'Subir'}
-        </button>
-      </form>
+          <button type="submit"
+            className={`modal-submit-btn${status === 'uploading' ? ' loading' : ''}${status === 'success' ? ' success' : ''}`}
+            disabled={status === 'uploading' || status === 'success'}>
+            {status === 'uploading' && <span className="btn-spinner" />}
+            {status === 'success' ? '✓ Subido' : status === 'uploading' ? 'Subiendo…' : 'Subir versión'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-function ProjectDetail({ project }) {
+function ProjectDetail({ project, onGoHome, onCreateProject }) {
   const [versions, setVersions] = useState([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [versionsError, setVersionsError] = useState('');
@@ -139,7 +157,6 @@ function ProjectDetail({ project }) {
     }
   };
 
-  // Reload versions whenever the selected project changes
   useEffect(() => {
     setVersions([]);
     setShowUpload(false);
@@ -147,132 +164,169 @@ function ProjectDetail({ project }) {
     loadVersions();
   }, [project.id]);
 
-  const handleToggleVersions = () => {
-    setShowVersions((v) => !v);
-  };
-
   const latestVersion = versions[0];
 
   return (
     <div className="project-detail">
-      {/* ── Header ── */}
-      <div className="detail-header">
-        <div className="detail-title-row">
-          <h2 className="detail-title">{project.name}</h2>
-        </div>
-        {project.description && (
-          <p className="detail-meta">{project.description}</p>
-        )}
-        {!project.description && latestVersion && (
-          <p className="detail-meta">{latestVersion.description}</p>
-        )}
+
+      {/* ── Top nav ── */}
+      <div className="detail-topnav">
+        <button className="detail-back-btn" onClick={onGoHome}>
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd"/>
+          </svg>
+          Inicio
+        </button>
+        <button className="detail-new-btn" onClick={onCreateProject}>
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+          </svg>
+          Nuevo proyecto
+        </button>
       </div>
 
-      {/* ── Action buttons ── */}
-      <div className="detail-actions">
-        <button
-          className="detail-btn primary"
-          onClick={() => { setShowUpload((v) => !v); }}
-        >
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
-          </svg>
-          Subir Versión
-        </button>
+      {/* ── Single unified card ── */}
+      <div className="detail-card">
+        <WaveformDecor />
 
-        <button
-          className={`detail-btn secondary${showVersions ? ' active' : ''}`}
-          onClick={handleToggleVersions}
-        >
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
-          </svg>
-          Cambios
-          {versions.length > 0 && (
-            <span className="detail-badge">{versions.length}</span>
+        {/* Card top: info + actions */}
+        <div className="detail-card-body">
+          <div className="detail-project-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M9 19V6l12-3v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="1.8"/>
+              <circle cx="18" cy="15" r="3" stroke="currentColor" strokeWidth="1.8"/>
+            </svg>
+          </div>
+
+          <h1 className="detail-hero-title">{project.name}</h1>
+
+          {project.description && (
+            <p className="detail-hero-desc">{project.description}</p>
           )}
-        </button>
+
+          {/* Stats */}
+          <div className="detail-stats">
+            <div className="detail-stat">
+              <span className="detail-stat-value">{loadingVersions ? '…' : versions.length}</span>
+              <span className="detail-stat-label">versiones</span>
+            </div>
+            <div className="detail-stat-divider" />
+            <div className="detail-stat">
+              <span className="detail-stat-value">
+                {latestVersion
+                  ? formatDate(latestVersion.uploaded_at || latestVersion.created_at).split(' ')[0]
+                  : '—'}
+              </span>
+              <span className="detail-stat-label">última subida</span>
+            </div>
+            {latestVersion?.size && (
+              <>
+                <div className="detail-stat-divider" />
+                <div className="detail-stat">
+                  <span className="detail-stat-value">{formatBytes(latestVersion.size)}</span>
+                  <span className="detail-stat-label">tamaño</span>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="detail-actions">
+            <button className="detail-action-primary" onClick={() => setShowUpload(true)}>
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd"/>
+              </svg>
+              Subir versión
+            </button>
+
+            <button
+              className={`detail-action-secondary${showVersions ? ' active' : ''}`}
+              onClick={() => setShowVersions(v => !v)}
+            >
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
+              </svg>
+              Historial
+              {versions.length > 0 && (
+                <span className="detail-action-badge">{versions.length}</span>
+              )}
+            </button>
+
+            {latestVersion && (
+              <button className="detail-action-ghost"
+                onClick={() => downloadVersion(latestVersion.id, latestVersion.filename)}>
+                <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
+                </svg>
+                Última versión
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Historial — dentro de la misma card ── */}
+        {showVersions && (
+          <div className="detail-versions">
+            <div className="detail-versions-divider" />
+
+            <div className="detail-versions-header">
+              <span className="detail-versions-title">Historial de versiones</span>
+              <span className="detail-versions-count">
+                {loadingVersions ? '…' : `${versions.length} versión${versions.length !== 1 ? 'es' : ''}`}
+              </span>
+            </div>
+
+            {loadingVersions && (
+              <div className="versions-loading">
+                <span className="btn-spinner accent" /> Cargando…
+              </div>
+            )}
+            {!loadingVersions && versionsError && (
+              <p className="versions-error">{versionsError}</p>
+            )}
+            {!loadingVersions && !versionsError && versions.length === 0 && (
+              <div className="versions-empty-state">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M6 21a3 3 0 100-6 3 3 0 000 6zm12-3a3 3 0 100-6 3 3 0 000 6z"/>
+                </svg>
+                <p>Todavía no hay versiones. ¡Subí la primera!</p>
+              </div>
+            )}
+            {!loadingVersions && versions.length > 0 && (
+              <ul className="versions-list">
+                {versions.map((v, idx) => (
+                  <li key={v.id ?? v.filename} className="version-item">
+                    <span className="version-number">v{versions.length - idx}</span>
+                    <div className="version-item-info">
+                      <span className="version-item-name">{v.description || v.filename}</span>
+                      <span className="version-item-meta">
+                        {formatDate(v.uploaded_at || v.created_at)}
+                        {v.size ? ` · ${formatBytes(v.size)}` : ''}
+                      </span>
+                    </div>
+                    <button className="version-download-btn"
+                      onClick={() => downloadVersion(v.id, v.filename)}
+                      aria-label="Descargar" title="Descargar">
+                      <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ── Upload drawer ── */}
+      {/* ── Upload modal ── */}
       {showUpload && (
-        <UploadDrawer
+        <UploadModal
           projectId={project.id}
           onSuccess={loadVersions}
           onClose={() => setShowUpload(false)}
         />
-      )}
-
-      {/* ── Versions list ── */}
-      {showVersions && (
-        <div className="versions-section">
-          <div className="versions-header">
-            <span className="versions-label">
-              Cambios · {loadingVersions ? '…' : versions.length} versiones
-            </span>
-          </div>
-
-          {loadingVersions && (
-            <div className="versions-loading">
-              <span className="btn-spinner accent" />
-              Cargando…
-            </div>
-          )}
-
-          {!loadingVersions && versionsError && (
-            <p className="versions-error">{versionsError}</p>
-          )}
-
-          {!loadingVersions && !versionsError && versions.length === 0 && (
-            <p className="versions-empty">Sin versiones todavía.</p>
-          )}
-
-          {!loadingVersions && versions.length > 0 && (
-            <ul className="versions-list">
-              {versions.map((v) => (
-                <li key={v.id ?? v.filename} className="version-item">
-                  <div className="version-item-icon" aria-hidden="true">
-                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
-                    </svg>
-                  </div>
-                  <div className="version-item-info">
-                    <span className="version-item-name">{v.description || v.filename}</span>
-                    <span className="version-item-meta">
-                      {formatDate(v.uploaded_at || v.created_at)}
-                      {v.size ? ` · ${formatBytes(v.size)}` : ''}
-                    </span>
-                  </div>
-                  <div className="version-item-actions">
-                    <a
-                      className="version-download-btn"
-                      href={`${API_BASE}/versions/download/${v.id ?? v.filename}`}
-                      aria-label="Descargar versión"
-                      title="Descargar"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
-                      </svg>
-                    </a>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {/* ── Open last version button ── */}
-      {latestVersion && (
-        <div className="detail-footer">
-          <a
-            className="open-last-btn"
-            href={`${API_BASE}/versions/download/${latestVersion.id ?? latestVersion.filename}`}
-          >
-            Abrir última versión
-          </a>
-        </div>
       )}
     </div>
   );

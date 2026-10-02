@@ -19,6 +19,21 @@ class VersionController{
 		}
 	}
 
+	downloadVersion = async (req, res) => {
+		try {
+			const { id } = req.params
+			if (!id) return res.status(400).json({ error: 'id requerido' })
+
+			const { signedUrl, filename } = await svc.downloadVersion(id)
+
+			// Redirigir al signed URL → el navegador / fetch descarga directo desde Supabase
+			res.redirect(signedUrl)
+		} catch (error) {
+			const status = error.message === 'Versión no encontrada' ? 404 : 500
+			res.status(status).json({ error: error.message })
+		}
+	}
+
 	getVersionsByProject = async (req, res) => {
 		try {
 			const { projectId } = req.params

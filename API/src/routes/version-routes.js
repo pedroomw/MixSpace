@@ -15,4 +15,6 @@ router.post('/upload',
 
 router.get('/project/:projectId', controller.getVersionsByProject)
 
+router.get('/download/:id', controller.downloadVersion)
+
 export default router

@@ -23,6 +23,18 @@ class StorageRepository {
             throw (error)
         }
     }
+    getSignedUrl = async (filename, expiresIn = 60) => {
+      try {
+        const { data, error } = await supabase.storage
+          .from('versions')
+          .createSignedUrl(filename, expiresIn)
+        if (error) throw error
+        return data.signedUrl
+      } catch (error) {
+        console.log("Error en getSignedUrl:", error)
+        throw error
+      }
+    }
 }
 
 export default StorageRepository

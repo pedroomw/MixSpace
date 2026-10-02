@@ -24,6 +24,22 @@ class DatabaseRepository {
       }
     }
 
+    getVersionById = async (id) => {
+      try {
+        const { data, error } = await supabase
+          .from('Versions')
+          .select('*')
+          .eq('id', id)
+          .single()
+          .throwOnError()
+        if (error) throw error
+        return data
+      } catch (error) {
+        console.log("Error en getVersionById:", error)
+        throw error
+      }
+    }
+
     getVersionsByProject = async (project_id) => {
       try {
         const { data, error } = await supabase

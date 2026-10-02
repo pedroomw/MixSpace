@@ -133,8 +133,13 @@ function App() {
         {/* Left / main area */}
         <main className="workspace-main">
           {selectedProject
-            ? <ProjectDetail project={selectedProject} key={selectedProject.id} />
-            : <HomeHero username={heroName} onCreateProject={handleOpenCreateModal} />
+            ? <ProjectDetail
+                project={selectedProject}
+                key={selectedProject.id}
+                onGoHome={() => setSelectedProject(null)}
+                onCreateProject={handleOpenCreateModal}
+              />
+            : <HomeHero username={heroName} onCreateProject={handleOpenCreateModal} projectCount={projects.length} />
           }
         </main>
 
@@ -142,7 +147,8 @@ function App() {
         <ProjectSidebar
           projects={projects}
           selectedId={selectedProject?.id}
-          onSelect={setSelectedProject}
+          onSelect={(p) => setSelectedProject(p.id === selectedProject?.id ? null : p)}
+          onCreateProject={handleOpenCreateModal}
           loading={loadingProjects}
         />
       </div>

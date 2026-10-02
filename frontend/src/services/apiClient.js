@@ -157,9 +157,47 @@ export async function createProject({ name, description = '' }) {
   }
 }
 
+/**
+ * Download a version file by ID.
+ * Calls the authenticated endpoint, follows the redirect to the Supabase
+ * signed URL, and triggers a browser file download.
+ * @param {string|number} id       - Version ID
+ * @param {string}        filename - Suggested filename for the download
+ * @returns {Promise<{ok: boolean, error?: string}>}
+ */
+export async function downloadVersion(id, filename) {
+  try {
+    const token = localStorage.getItem('mixspace_token');
+
+    const response = await fetch(`http://localhost:3000/versions/download/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      return { ok: false, error: body.error || `Error ${response.status}` };
+    }
+
+    const blob = await response.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = filename || `version_${id}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error.message || 'Error al descargar' };
+  }
+}
+
 export default {
   resolvePluginSession,
   getProjects,
   createProject,
-  uploadFile
+  uploadFile,
+  downloadVersion
 };
