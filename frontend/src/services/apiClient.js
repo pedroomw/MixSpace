@@ -67,7 +67,7 @@ export async function getProjects() {
  * @param {string} fileData.project_id - The project ID
  * @returns {Promise<{ok: boolean, result?: any, error?: string}>}
  */
-export async function uploadFile({ file, description, project_id }) {
+export async function uploadFile({ file, description, project_id, tags = [] }) {
   try {
     // Retrieve auth token stored during login
     const token = localStorage.getItem('mixspace_token');
@@ -77,6 +77,8 @@ export async function uploadFile({ file, description, project_id }) {
     formData.append('file', file);
     formData.append('description', description);
     formData.append('project_id', project_id);
+    // Tags must be JSON-stringified since FormData only supports strings
+    formData.append('tags', JSON.stringify(tags));
 
     // Send POST request to the correct endpoint with Bearer token
     const response = await apiClient.post('/versions/upload', formData, {
@@ -129,13 +131,13 @@ export async function uploadFile({ file, description, project_id }) {
  * @param {string} [projectData.description] - Optional description
  * @returns {Promise<{ok: boolean, project?: Object, error?: string}>}
  */
-export async function createProject({ name, description = '' }) {
+export async function createProject({ name, description = '', tags = [] }) {
   try {
     const token = localStorage.getItem('mixspace_token');
 
     const response = await apiClient.post(
       '/projects',
-      { name, description },
+      { name, description, tags },
       { headers: token ? { Authorization: `Bearer ${token}` } : {} }
     );
 
@@ -194,10 +196,30 @@ export async function downloadVersion(id, filename) {
   }
 }
 
+/**
+ * Update tags on a specific version
+ * @param {string|number} id   - Version ID
+ * @param {string[]}      tags - Array of tag strings
+ * @returns {Promise<{ok: boolean, result?: any, error?: string}>}
+ */
+export async function updateVersionTags(id, tags) {
+  try {
+    const token = localStorage.getItem('mixspace_token');
+    const response = await apiClient.patch(`/versions/${id}/tags`, { tags }, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return { ok: true, result: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.error || error.message || 'Error al actualizar etiquetas';
+    return { ok: false, error: errorMessage };
+  }
+}
+
 export default {
   resolvePluginSession,
   getProjects,
   createProject,
   uploadFile,
-  downloadVersion
+  downloadVersion,
+  updateVersionTags
 };

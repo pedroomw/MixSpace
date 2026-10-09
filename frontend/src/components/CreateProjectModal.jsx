@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import TagPicker from './TagPicker';
 import './CreateProjectModal.css';
 
 /**
@@ -15,6 +16,7 @@ import './CreateProjectModal.css';
 function CreateProjectModal({ open, onClose, onSubmit, loading = false, error = null }) {
   const [name, setName]               = useState('');
   const [description, setDescription] = useState('');
+  const [tags, setTags]               = useState([]);
   const [nameError, setNameError]     = useState('');
 
   const nameRef = useRef(null);
@@ -24,6 +26,7 @@ function CreateProjectModal({ open, onClose, onSubmit, loading = false, error = 
     if (open) {
       setName('');
       setDescription('');
+      setTags([]);
       setNameError('');
       // Small delay so the CSS transition finishes before focusing
       setTimeout(() => nameRef.current?.focus(), 80);
@@ -47,7 +50,7 @@ function CreateProjectModal({ open, onClose, onSubmit, loading = false, error = 
       return;
     }
     setNameError('');
-    onSubmit({ name: trimmed, description: description.trim() });
+    onSubmit({ name: trimmed, description: description.trim(), tags });
   };
 
   if (!open) return null;
@@ -111,6 +114,15 @@ function CreateProjectModal({ open, onClose, onSubmit, loading = false, error = 
               disabled={loading}
               rows={3}
               maxLength={300}
+            />
+          </div>
+
+          <div className="cpm-field">
+            <TagPicker
+              tags={tags}
+              onChange={setTags}
+              disabled={loading}
+              label="Etiquetas del proyecto"
             />
           </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { uploadFile, downloadVersion } from '../services/apiClient';
+import { uploadFile, downloadVersion, updateVersionTags } from '../services/apiClient';
 import axios from 'axios';
+import TagPicker from './TagPicker';
 import './ProjectDetail.css';
 
 const API_BASE = 'http://localhost:3000';
@@ -30,7 +31,7 @@ function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   const pad = (n) => String(n).padStart(2, '0');
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)} ${pad(d.getHours())}:${pad(d.getMinutes())}pm`;
 }
 
 // ─── Decorative waveform ──────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ function WaveformDecor() {
 function UploadModal({ projectId, onSuccess, onClose }) {
   const [file, setFile] = useState(null);
   const [description, setDescription] = useState('');
+  const [tags, setTags] = useState([]);
   const [status, setStatus] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const fileInputRef = useRef();
@@ -66,7 +68,7 @@ function UploadModal({ projectId, onSuccess, onClose }) {
     if (!description.trim()) { setErrorMsg('La descripción es obligatoria'); return; }
     setStatus('uploading');
     setErrorMsg('');
-    const result = await uploadFile({ file, description: description.trim(), project_id: projectId });
+    const result = await uploadFile({ file, description: description.trim(), project_id: projectId, tags });
     if (result.ok) {
       setStatus('success');
       setTimeout(() => { onSuccess(); onClose(); }, 1100);
@@ -122,6 +124,13 @@ function UploadModal({ projectId, onSuccess, onClose }) {
             value={description} maxLength={200} disabled={status === 'uploading'}
             onChange={(e) => { setDescription(e.target.value); setErrorMsg(''); }} />
 
+          <TagPicker
+            tags={tags}
+            onChange={setTags}
+            disabled={status === 'uploading'}
+            label="Etiquetas"
+          />
+
           {errorMsg && <p className="modal-error">{errorMsg}</p>}
 
           <button type="submit"
@@ -136,6 +145,116 @@ function UploadModal({ projectId, onSuccess, onClose }) {
   );
 }
 
+// ─── Tag editor modal ─────────────────────────────────────────────────────────
+function TagEditorModal({ version, onSave, onClose }) {
+  const [tags, setTags] = useState(
+    Array.isArray(version.tags) ? [...version.tags] : []
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError('');
+    const result = await updateVersionTags(version.id, tags);
+    setSaving(false);
+    if (result.ok) {
+      onSave(version.id, tags);
+      onClose();
+    } else {
+      setError(result.error || 'No se pudo guardar');
+    }
+  };
+
+  return (
+    <div className="upload-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="upload-modal tag-editor-modal">
+        <div className="upload-modal-header">
+          <div className="upload-modal-title">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+            </svg>
+            Etiquetas — {version.description || version.filename}
+          </div>
+          <button className="upload-modal-close" onClick={onClose} aria-label="Cerrar">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+
+        <div className="tag-editor-body">
+          <TagPicker
+            tags={tags}
+            onChange={setTags}
+            disabled={saving}
+            label="Etiquetas de esta versión"
+          />
+
+          {error && <p className="modal-error">{error}</p>}
+
+          <button
+            className={`modal-submit-btn${saving ? ' loading' : ''}`}
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving && <span className="btn-spinner" />}
+            {saving ? 'Guardando…' : 'Guardar etiquetas'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Version row menu ─────────────────────────────────────────────────────────
+function VersionMenu({ version, onEditTags, onDownload }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef();
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="version-menu-wrap" ref={menuRef}>
+      <button
+        className="version-menu-btn"
+        onClick={() => setOpen(v => !v)}
+        aria-label="Opciones"
+        aria-expanded={open}
+      >
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
+          <circle cx="10" cy="4"  r="1.5"/>
+          <circle cx="10" cy="10" r="1.5"/>
+          <circle cx="10" cy="16" r="1.5"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="version-menu-dropdown">
+          <button className="version-menu-item" onClick={() => { setOpen(false); onDownload(); }}>
+            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
+            </svg>
+            Descargar
+          </button>
+          <button className="version-menu-item" onClick={() => { setOpen(false); onEditTags(); }}>
+            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+            </svg>
+            Editar etiquetas
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 function ProjectDetail({ project, onGoHome, onCreateProject }) {
   const [versions, setVersions] = useState([]);
@@ -143,6 +262,7 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
   const [versionsError, setVersionsError] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
+  const [editingTagsFor, setEditingTagsFor] = useState(null); // version object
 
   const loadVersions = async () => {
     setLoadingVersions(true);
@@ -163,6 +283,13 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
     setShowVersions(false);
     loadVersions();
   }, [project.id]);
+
+  // Update tags locally after saving so we don't need a full reload
+  const handleTagsSaved = (versionId, newTags) => {
+    setVersions(prev =>
+      prev.map(v => v.id === versionId ? { ...v, tags: newTags } : v)
+    );
+  };
 
   const latestVersion = versions[0];
 
@@ -247,7 +374,7 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
               <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
               </svg>
-              Historial
+              Cambios
               {versions.length > 0 && (
                 <span className="detail-action-badge">{versions.length}</span>
               )}
@@ -259,7 +386,7 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
                 <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
                 </svg>
-                Última versión
+                Abrir ultima versión
               </button>
             )}
           </div>
@@ -271,10 +398,7 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
             <div className="detail-versions-divider" />
 
             <div className="detail-versions-header">
-              <span className="detail-versions-title">Historial de versiones</span>
-              <span className="detail-versions-count">
-                {loadingVersions ? '…' : `${versions.length} versión${versions.length !== 1 ? 'es' : ''}`}
-              </span>
+              <span className="detail-versions-title">Cambios — {loadingVersions ? '…' : versions.length} versiones</span>
             </div>
 
             {loadingVersions && (
@@ -296,15 +420,36 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
             {!loadingVersions && versions.length > 0 && (
               <ul className="versions-list">
                 {versions.map((v, idx) => (
-                  <li key={v.id ?? v.filename} className="version-item">
-                    <span className="version-number">v{versions.length - idx}</span>
+                  <li key={v.id ?? v.filename} className={`version-item${idx === 0 ? ' version-item--latest' : ''}`}>
+                    {/* Music note icon */}
+                    <div className="version-icon" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M9 19V6l12-3v13" strokeLinecap="round" strokeLinejoin="round"/>
+                        <circle cx="6" cy="18" r="3"/>
+                        <circle cx="18" cy="15" r="3"/>
+                      </svg>
+                    </div>
+
+                    {/* Info block */}
                     <div className="version-item-info">
-                      <span className="version-item-name">{v.description || v.filename}</span>
+                      <div className="version-item-top-row">
+                        <span className="version-item-name">{v.description || v.filename}</span>
+                        {/* Tags */}
+                        {Array.isArray(v.tags) && v.tags.length > 0 && (
+                          <div className="version-tags">
+                            {v.tags.map(tag => (
+                              <span key={tag} className="version-tag">{tag}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <span className="version-item-meta">
                         {formatDate(v.uploaded_at || v.created_at)}
                         {v.size ? ` · ${formatBytes(v.size)}` : ''}
                       </span>
                     </div>
+
+                    {/* Download button */}
                     <button className="version-download-btn"
                       onClick={() => downloadVersion(v.id, v.filename)}
                       aria-label="Descargar" title="Descargar">
@@ -312,6 +457,13 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
                         <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
                       </svg>
                     </button>
+
+                    {/* Three-dot menu */}
+                    <VersionMenu
+                      version={v}
+                      onEditTags={() => setEditingTagsFor(v)}
+                      onDownload={() => downloadVersion(v.id, v.filename)}
+                    />
                   </li>
                 ))}
               </ul>
@@ -326,6 +478,15 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
           projectId={project.id}
           onSuccess={loadVersions}
           onClose={() => setShowUpload(false)}
+        />
+      )}
+
+      {/* ── Tag editor modal ── */}
+      {editingTagsFor && (
+        <TagEditorModal
+          version={editingTagsFor}
+          onSave={handleTagsSaved}
+          onClose={() => setEditingTagsFor(null)}
         />
       )}
     </div>

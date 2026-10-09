@@ -17,4 +17,6 @@ router.get('/project/:projectId', controller.getVersionsByProject)
 
 router.get('/download/:id', controller.downloadVersion)
 
+router.patch('/:id/tags', controller.updateVersionTags)
+
 export default router

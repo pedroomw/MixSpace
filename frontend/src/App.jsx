@@ -83,11 +83,11 @@ function App() {
     setCreateError(null);
   };
 
-  const handleCreateProject = async ({ name, description }) => {
+  const handleCreateProject = async ({ name, description, tags = [] }) => {
     setCreatingProject(true);
     setCreateError(null);
 
-    const result = await createProject({ name, description });
+    const result = await createProject({ name, description, tags });
 
     setCreatingProject(false);
 

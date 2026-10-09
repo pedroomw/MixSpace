@@ -20,7 +20,8 @@ class ProjectsController{
             const userID = req.user.userId
             const name = req.body.name
             const description = req.body.description
-            const result = await svc.CreateProject(userID, name, description)
+            const tags = Array.isArray(req.body.tags) ? req.body.tags : []
+            const result = await svc.CreateProject(userID, name, description, tags)
             res.status(200).json(result)
         } catch(error){
             res.status(500).json({ error: error.message })

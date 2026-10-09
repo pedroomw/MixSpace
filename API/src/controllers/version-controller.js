@@ -7,7 +7,12 @@ class VersionController{
 		try {
 			if (req.file) {
 				const {description, project_id} = req.body
-				const file = req.file
+				// tags can come as a JSON string (FormData only supports strings)
+				let tags = []
+				if (req.body.tags) {
+					try { tags = JSON.parse(req.body.tags) } catch { tags = [] }
+				}
+				const file = { ...req.file, tags }
 				const result = await svc.uploadVersion(description, project_id, file)
 				res.status(201).json(result)
 			} else {
@@ -44,6 +49,21 @@ class VersionController{
 			res.status(200).json(versions)
 		} catch (error) {
 			console.log(`[versions] error en getVersionsByProject: ${error.message}`)
+			res.status(500).json({ error: error.message })
+		}
+	}
+
+	updateVersionTags = async (req, res) => {
+		try {
+			const { id } = req.params
+			if (!id) return res.status(400).json({ error: 'id requerido' })
+			const { tags } = req.body
+			if (!Array.isArray(tags)) return res.status(400).json({ error: 'tags debe ser un array' })
+			console.log(`[versions] updateVersionTags id="${id}" tags=${JSON.stringify(tags)}`)
+			const result = await svc.updateVersionTags(id, tags)
+			res.status(200).json(result)
+		} catch (error) {
+			console.log(`[versions] error en updateVersionTags: ${error.message}`)
 			res.status(500).json({ error: error.message })
 		}
 	}

@@ -27,11 +27,11 @@ class ProjectsRepository {
         }
     }
 
-    CreateProject = async (userID, name, description) => {
+    CreateProject = async (userID, name, description, tags = []) => {
         try {
             const { data, error } = await supabase
                 .from('Projects')
-                .insert([{name: name, description: description, user_id: userID}])
+                .insert([{name: name, description: description, user_id: userID, tags: tags}])
                 .throwOnError()
             if(error) {
                 throw error

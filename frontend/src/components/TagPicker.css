@@ -1,0 +1,172 @@
+/* ── TagPicker ───────────────────────────────────────────────────────────── */
+
+.tagpicker {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+}
+
+.tagpicker-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+}
+
+.tagpicker-hint {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ── Input field with inline chips ── */
+.tagpicker-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-height: 40px;
+  padding: 6px 10px;
+  background: var(--bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md, 8px);
+  cursor: text;
+  transition: border-color var(--transition-fast, 0.15s);
+}
+
+.tagpicker-field:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.15);
+}
+
+.tagpicker-field--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Tag chip (inline dentro del field) ── */
+/* Estilo exacto de la imagen: borde lila, fondo oscuro-transparente, texto blanco */
+.tp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.55);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e2cff8;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  line-height: 1.4;
+  user-select: none;
+}
+
+.tp-chip-remove {
+  background: none;
+  border: none;
+  color: rgba(192, 132, 252, 0.7);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  transition: color var(--transition-fast, 0.15s);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+.tp-chip-remove:hover {
+  color: #fff;
+  background: rgba(192, 132, 252, 0.25);
+}
+
+/* ── Inline text input ── */
+.tp-input {
+  flex: 1;
+  min-width: 100px;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: var(--font-family);
+  padding: 2px 0;
+}
+.tp-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ── Suggestions dropdown ── */
+.tp-suggestions {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary, #1a1a2e);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  z-index: 60;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px 10px;
+  animation: tp-fade 0.1s ease;
+}
+
+@keyframes tp-fade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tp-suggestion {
+  padding: 3px 10px;
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: all var(--transition-fast, 0.15s);
+  white-space: nowrap;
+}
+.tp-suggestion:hover {
+  background: rgba(168, 85, 247, 0.22);
+  border-color: rgba(168, 85, 247, 0.6);
+  color: #e2cff8;
+  transform: translateY(-1px);
+}
+
+/* ── Counter ── */
+.tagpicker-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: -2px;
+}
+
+/* ── Version tag display (read-only, used in version list rows) ── */
+/* Rediseño para coincidir con la imagen: todos igual, borde lila */
+.version-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #e2cff8;
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+  white-space: nowrap;
+  user-select: none;
+}

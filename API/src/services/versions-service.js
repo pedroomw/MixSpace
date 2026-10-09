@@ -8,7 +8,7 @@ class SupabaseService {
       try{
         const filename = setFileName(file.originalname)
         console.log(`[upload] description="${description}" project_id="${project_id}" filename="${filename}"`)
-        const resultadoDatabase = await this.uploadVersionToDatabase(description, project_id, filename)
+        const resultadoDatabase = await this.uploadVersionToDatabase(description, project_id, filename, file.tags || [])
         console.log(`[upload] DB insert OK:`, JSON.stringify(resultadoDatabase))
         const resultadoStorage = await this.uploadFileToStorage(filename, file)
         console.log(`[upload] Storage upload OK:`, JSON.stringify(resultadoStorage))
@@ -40,10 +40,19 @@ class SupabaseService {
       }
     }
 
-    uploadVersionToDatabase = async (description, project_id, filename) => {
+    updateVersionTags = async (id, tags) => {
+      try {
+        const repo = new DatabaseRepository()
+        return await repo.updateVersionTags(id, tags)
+      } catch (error) {
+        throw error
+      }
+    }
+
+    uploadVersionToDatabase = async (description, project_id, filename, tags = []) => {
       try{
         const repo = new DatabaseRepository()
-        const resultado = await repo.uploadVersion(description, project_id, filename)
+        const resultado = await repo.uploadVersion(description, project_id, filename, tags)
         return resultado
       }
       catch(error){ 

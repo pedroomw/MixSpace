@@ -9,11 +9,11 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey) 
 
 class DatabaseRepository {
-    uploadVersion = async (description, project_id, filename) => {
+    uploadVersion = async (description, project_id, filename, tags = []) => {
       try{
         const {data, error} = await supabase
           .from('Versions')
-          .insert([{description: description, project_id: project_id, filename: filename}])
+          .insert([{description: description, project_id: project_id, filename: filename, tags: tags}])
           .select()
           .throwOnError()
         return data
@@ -52,6 +52,22 @@ class DatabaseRepository {
         return data ?? []
       } catch (error) {
         console.log("Error en getVersionsByProject:", error)
+        throw error
+      }
+    }
+
+    updateVersionTags = async (id, tags) => {
+      try {
+        const { data, error } = await supabase
+          .from('Versions')
+          .update({ tags })
+          .eq('id', id)
+          .select()
+          .throwOnError()
+        if (error) throw error
+        return data
+      } catch (error) {
+        console.log("Error en updateVersionTags:", error)
         throw error
       }
     }

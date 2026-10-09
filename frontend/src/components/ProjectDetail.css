@@ -313,23 +313,30 @@
 .version-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 30px;
+  gap: 10px;
+  padding: 10px 18px 10px 20px;
   transition: background var(--transition-fast);
-  border-top: 1px solid rgba(255,255,255,0.03);
+  border-top: 1px solid rgba(255,255,255,0.04);
 }
 .version-item:hover { background: rgba(255,255,255,0.025); }
 
-.version-number {
-  font-size: 10px;
-  font-weight: 700;
+/* Latest version gets a subtle left accent */
+.version-item--latest {
+  border-left: 2px solid var(--accent-primary);
+  padding-left: 18px;
+}
+
+/* Music note icon wrapper */
+.version-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(192,132,252,0.1);
+  border-radius: 8px;
   color: var(--accent-primary);
-  background: rgba(192,132,252,0.11);
-  border-radius: 5px;
-  padding: 3px 6px;
   flex-shrink: 0;
-  min-width: 26px;
-  text-align: center;
 }
 
 .version-item-info {
@@ -337,23 +344,40 @@
   min-width: 0;
 }
 
+.version-item-top-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .version-item-name {
-  display: block;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 160px;
 }
 
 .version-item-meta {
   display: block;
   font-size: 10px;
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
+/* ── Version tags ── */
+.version-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* .version-tag is defined in TagPicker.css — unified lila pill style */
+
+/* ── Version action buttons ── */
 .version-download-btn {
   display: flex;
   align-items: center;
@@ -372,6 +396,82 @@
   border-color: var(--accent-primary);
   color: var(--accent-primary);
   background: rgba(192,132,252,0.07);
+}
+
+/* Three-dot menu */
+.version-menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.version-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.version-menu-btn:hover {
+  border-color: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.04);
+}
+
+.version-menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  min-width: 148px;
+  z-index: 50;
+  overflow: hidden;
+  animation: menuFadeIn 0.12s ease;
+}
+@keyframes menuFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.version-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-family);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.version-menu-item:hover {
+  background: rgba(192,132,252,0.07);
+  color: var(--text-primary);
+}
+
+/* ── Tag editor modal ── */
+.tag-editor-modal {
+  max-width: 420px;
+}
+
+.tag-editor-body {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 /* ── Upload modal overlay ── */
