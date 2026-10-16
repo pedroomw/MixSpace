@@ -5,7 +5,7 @@ import HomeHero from './components/HomeHero';
 import ProjectSidebar from './components/ProjectSidebar';
 import ProjectDetail from './components/ProjectDetail';
 import CreateProjectModal from './components/CreateProjectModal';
-import { getProjects, createProject, resolvePluginSession } from './services/apiClient';
+import { getProjects, createProject, resolvePluginSession, getMe } from './services/apiClient';
 import './App.css';
 
 function App() {
@@ -32,7 +32,18 @@ function App() {
     const storedUser = localStorage.getItem('mixspace_user');
     const storedToken = localStorage.getItem('mixspace_token');
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+      const parsed = JSON.parse(storedUser);
+      setUser(parsed);
+      // Enrich with server profile if id or created_at are missing
+      if (!parsed.id || !parsed.created_at) {
+        getMe().then((result) => {
+          if (result.ok) {
+            const enriched = { ...parsed, ...result.user };
+            setUser(enriched);
+            localStorage.setItem('mixspace_user', JSON.stringify(enriched));
+          }
+        });
+      }
     }
     setCheckingSession(false);
   }, []);
@@ -68,8 +79,12 @@ function App() {
     setSelectedProject(null);
   };
 
-  const handleLoginSuccess = (u) => {
-    setUser(u);
+  const handleLoginSuccess = async (u) => {
+    // Enrich the user object with server profile data (id, created_at)
+    const result = await getMe();
+    const enriched = result.ok ? { ...u, ...result.user } : u;
+    localStorage.setItem('mixspace_user', JSON.stringify(enriched));
+    setUser(enriched);
   };
 
   const handleOpenCreateModal = () => {

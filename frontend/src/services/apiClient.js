@@ -215,8 +215,38 @@ export async function updateVersionTags(id, tags) {
   }
 }
 
+/**
+ * Fetch the authenticated user's profile from the server.
+ * Returns id, email, and created_at from the users table.
+ * @returns {Promise<{ok: boolean, user?: {id: string, email: string, created_at: string}, error?: string}>}
+ */
+export async function getMe() {
+  try {
+    const token = localStorage.getItem('mixspace_token');
+
+    const response = await apiClient.get('/auth/me', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+
+    return { ok: true, user: response.data };
+  } catch (error) {
+    let errorMessage = 'No se pudo cargar el perfil';
+
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'No se pudo conectar con el servidor';
+    } else if (error.response?.status === 401) {
+      errorMessage = 'Sesión expirada. Volvé a iniciar sesión';
+    } else if (error.response) {
+      errorMessage = error.response.data?.error || errorMessage;
+    }
+
+    return { ok: false, error: errorMessage };
+  }
+}
+
 export default {
   resolvePluginSession,
+  getMe,
   getProjects,
   createProject,
   uploadFile,

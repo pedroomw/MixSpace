@@ -1,0 +1,135 @@
+/* ── Overlay ─────────────────────────────────────────────────────────────── */
+.profile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 60px var(--spacing-xl) 0;
+}
+
+/* ── Panel ───────────────────────────────────────────────────────────────── */
+.profile-panel {
+  width: 320px;
+  background: var(--bg-card);
+  border: 1px solid rgba(192, 132, 252, 0.15);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: profile-slide-in var(--transition-base) both;
+}
+
+@keyframes profile-slide-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profile-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.profile-title svg {
+  color: var(--accent-primary);
+}
+
+.profile-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.profile-close-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+}
+
+/* ── Avatar ──────────────────────────────────────────────────────────────── */
+.profile-avatar-wrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-xl) 0 var(--spacing-lg);
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(192, 132, 252, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%);
+  border: 2px solid rgba(192, 132, 252, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+}
+
+/* ── Fields ──────────────────────────────────────────────────────────────── */
+.profile-fields {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--spacing-lg) var(--spacing-xl);
+  gap: var(--spacing-sm);
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-md) var(--spacing-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+/* El campo del ID es visualmente más discreto */
+.profile-field--minor {
+  margin-top: var(--spacing-sm);
+  opacity: 0.65;
+}
+
+.profile-field-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.profile-field-value {
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+/* Monospace para el ID */
+.profile-field-value--mono {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
