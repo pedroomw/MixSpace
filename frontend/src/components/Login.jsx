@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { loginUser, registerUser } from '../api/auth'
+import logoImg from '../../imagenes/Logo mixspace fucsia.jfif'
 
 function Login({ onLoginSuccess }) {
     const [isRegistering, setIsRegistering] = useState(false)
@@ -54,14 +55,7 @@ function Login({ onLoginSuccess }) {
         <div className="login-container">
             <div className="login-box">
                 <div className="login-logo">
-                    <svg width="36" height="26" viewBox="0 0 46 32" fill="none">
-                        <rect x="0"  y="8"  width="5" height="16" rx="2.5" fill="#c084fc"/>
-                        <rect x="8"  y="4"  width="5" height="24" rx="2.5" fill="#c084fc"/>
-                        <rect x="16" y="0"  width="5" height="32" rx="2.5" fill="#c084fc"/>
-                        <rect x="24" y="6"  width="5" height="20" rx="2.5" fill="#c084fc"/>
-                        <rect x="32" y="10" width="5" height="12" rx="2.5" fill="#c084fc"/>
-                    </svg>
-                    <h1>MixSpace</h1>
+                    <img src={logoImg} alt="MixSpace" className="login-logo-img" />
                 </div>
                 <h2>{isRegistering ? 'Crear cuenta' : 'Iniciar sesión'}</h2>
 

@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.22)
 
 project(MixSpace VERSION 1.0.0)
 
-# TODO: change this path to wherever you cloned JUCE on THIS machine
-add_subdirectory("C:/Users/devandroid/Desktop/JUCE-master" "JUCE-build")
+set(JUCE_WEBVIEW2_PACKAGE_LOCATION "C:/Users/devandroid/AppData/Local/PackageManagement/NuGet/Packages")
+
+add_subdirectory("C:/Users/devandroid/Desktop/JUCE-master/JUCE-master" "JUCE-build")
 juce_add_plugin(MixSpace
     COMPANY_NAME "MixSpace"
     IS_SYNTH FALSE

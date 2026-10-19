@@ -1,19 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getMe } from '../services/apiClient';
 import './UserProfile.css';
 
 /**
  * UserProfile
- * Muestra los datos básicos del usuario autenticado:
- * email, id (detalle menor) y fecha de creación.
+ * Carga el perfil del usuario desde GET /auth/me al abrirse,
+ * y muestra email, fecha de creación e ID.
  *
  * Props:
- *   user     - objeto con { email, id, created_at } — viene del localStorage (mixspace_user)
+ *   user     - objeto inicial del localStorage (fallback mientras carga)
  *   onClose  - callback para cerrar/ocultar el panel
  */
 function UserProfile({ user, onClose }) {
-  const email      = user?.email      || '—';
-  const userId     = user?.id         || user?.sub || '—';
-  const createdAt  = user?.created_at || null;
+  const [profile, setProfile]   = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [error,   setError]     = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    getMe().then((result) => {
+      if (cancelled) return;
+      if (result.ok) {
+        setProfile(result.user);
+      } else {
+        setError(result.error);
+      }
+      setLoading(false);
+    });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // Usa los datos del servidor si están disponibles, si no usa los del localStorage
+  const email     = profile?.email      ?? user?.email      ?? '—';
+  const userId    = profile?.id         ?? user?.id         ?? user?.sub ?? '—';
+  const createdAt = profile?.created_at ?? user?.created_at ?? null;
 
   const formatDate = (iso) => {
     if (!iso) return '—';
@@ -57,23 +81,32 @@ function UserProfile({ user, onClose }) {
         {/* Datos del usuario */}
         <div className="profile-fields">
 
+          {/* Error al cargar */}
+          {error && !loading && (
+            <p className="profile-error">{error}</p>
+          )}
+
           {/* Email — dato principal */}
           <div className="profile-field">
             <span className="profile-field-label">Email</span>
-            <span className="profile-field-value">{email}</span>
+            <span className="profile-field-value">
+              {loading ? <span className="profile-skeleton" /> : email}
+            </span>
           </div>
 
           {/* Fecha de creación */}
           <div className="profile-field">
             <span className="profile-field-label">Miembro desde</span>
-            <span className="profile-field-value">{formatDate(createdAt)}</span>
+            <span className="profile-field-value">
+              {loading ? <span className="profile-skeleton" /> : formatDate(createdAt)}
+            </span>
           </div>
 
           {/* ID de usuario — detalle menor */}
           <div className="profile-field profile-field--minor">
             <span className="profile-field-label">ID de usuario</span>
             <span className="profile-field-value profile-field-value--mono" title={userId}>
-              {userId}
+              {loading ? <span className="profile-skeleton" /> : userId}
             </span>
           </div>
 
