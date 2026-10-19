@@ -24,6 +24,7 @@ class AuthService {
 
     getUserFromToken = async(userID) => {
         const user = await AuthRepository.getUserByID(userID)
+        return user
     }
 }
 

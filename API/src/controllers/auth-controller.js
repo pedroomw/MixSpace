@@ -83,7 +83,7 @@ class AuthController {
         const userID = req.user.userId
         try {
             const myUser = authService.getMyUser(userID)
-            res.status(200).json({message: myUser})
+            return res.status(200).json({message: myUser})
         } catch (err){
             return res.status(500).json({error: err})
         }
