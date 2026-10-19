@@ -78,6 +78,17 @@ class AuthController {
 
         return res.status(200).json({ status: 'ready', token })
     }
+
+    getMe = (req, res) => {
+        const userID = req.user.userId
+        try {
+            const myUser = authService.getMyUser(userID)
+            res.status(200).json({message: myUser})
+        } catch (err){
+            return res.status(500).json({error: err})
+        }
+
+    }
 }
 
 export default AuthController

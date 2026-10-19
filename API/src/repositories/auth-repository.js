@@ -15,32 +15,38 @@ const supabaseAuth = createClient(supabaseUrl, supabaseServiceRoleKey, {
 })
 
 class AuthRepository {
-signUp = async (email, password) => {
-    const { data, error } = await supabaseAuth.auth.signUp({ email, password })
-    console.log('signUp data:', JSON.stringify(data))
-    console.log('signUp error:', error)
-    if (error) throw error
-
-    const { data: profileData, error: profileError } = await supabaseAuth
-        .from("Users")
-        .insert({ id: data.user.id, email: email })
-        .select()
-    console.log('insert profileData:', profileData)
-    console.log('insert profileError:', profileError)
-    if (profileError) { throw profileError }
-    return profileData
-}
-    signIn = async (email, password) => {
-        const { data, error } = await supabaseAuth.auth.signInWithPassword({ email, password })
+    signUp = async (email, password) => {
+        const { data, error } = await supabaseAuth.auth.signUp({ email, password })
+        console.log('signUp data:', JSON.stringify(data))
+        console.log('signUp error:', error)
         if (error) throw error
-        return data.user
-    }
 
-    getUserFromToken = async (token) => {
-        const { data, error } = await supabaseAuth.auth.getUser(token)
-        if (error) throw error
-        return data.user
+        const { data: profileData, error: profileError } = await supabaseAuth
+            .from("Users")
+            .insert({ id: data.user.id, email: email })
+            .select()
+        console.log('insert profileData:', profileData)
+        console.log('insert profileError:', profileError)
+        if (profileError) { throw profileError }
+        return profileData
     }
+        signIn = async (email, password) => {
+            const { data, error } = await supabaseAuth.auth.signInWithPassword({ email, password })
+            if (error) throw error
+            return data.user
+        }
+
+        getUserFromToken = async (token) => {
+            const { data, error } = await supabaseAuth.auth.getUser(token)
+            if (error) throw error
+            return data.user
+        }
+
+        getUserFromID = async (id) => {
+            const { data, error } = await supabase.from('Users').select('*').eq('id', id).throwOnError()
+            if (error) throw error
+            return data.user
+        }
 }
 
 export default AuthRepository

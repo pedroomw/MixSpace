@@ -9,4 +9,5 @@ router.post('/login', authController.login)
 router.post('/plugin-session/:sessionId', authController.iniciarSesionPlugin);
 router.post('/plugin-session/:sessionId/resolve', authController.resolverSesionPlugin);
 router.get('/plugin-session/:sessionId', authController.consultarSesionPlugin);
+router.get('/me', authController.getMe);
 export default router
