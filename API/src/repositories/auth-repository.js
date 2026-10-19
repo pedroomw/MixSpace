@@ -43,9 +43,9 @@ class AuthRepository {
         }
 
         getUserFromID = async (id) => {
-            const { data, error } = await supabase.from('Users').select('*').eq('id', id).throwOnError()
+            const { data, error } = await supabaseAuth.from('Users').select('id, email, created_at').eq('id', id).single()
             if (error) throw error
-            return data.user
+            return data
         }
 }
 

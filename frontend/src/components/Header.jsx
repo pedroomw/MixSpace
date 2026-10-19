@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import UserProfile from './UserProfile';
+import logoImg from '../../imagenes/Logo mixspace fucsia.jfif';
 import './Header.css';
 
-function Header({ user, onLogout }) {
+function Header({ user, onLogout, onGoHome }) {
   const [showProfile, setShowProfile] = useState(false);
 
-  // Derive a display name: prefer the part before @, fallback to 'Usuario'
   const displayName = (() => {
     const email = user?.email || ''
     if (email.includes('@')) return email.split('@')[0]
@@ -17,17 +17,10 @@ function Header({ user, onLogout }) {
     <>
       <header className="header">
         <div className="header-content">
-          {/* Logo */}
-          <div className="header-logo">
-            <svg width="28" height="20" viewBox="0 0 46 32" fill="none">
-              <rect x="0"  y="8"  width="5" height="16" rx="2.5" fill="#c084fc"/>
-              <rect x="8"  y="4"  width="5" height="24" rx="2.5" fill="#c084fc"/>
-              <rect x="16" y="0"  width="5" height="32" rx="2.5" fill="#c084fc"/>
-              <rect x="24" y="6"  width="5" height="20" rx="2.5" fill="#c084fc"/>
-              <rect x="32" y="10" width="5" height="12" rx="2.5" fill="#c084fc"/>
-            </svg>
-            <span className="header-logo-name">MixSpace</span>
-          </div>
+          {/* Logo — click para volver al inicio */}
+          <button className="header-logo" onClick={onGoHome} aria-label="Ir al inicio">
+            <img src={logoImg} alt="MixSpace" className="header-logo-img" />
+          </button>
 
           {/* Right: profile row */}
           <div className="header-right">

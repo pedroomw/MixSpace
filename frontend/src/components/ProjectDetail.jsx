@@ -47,7 +47,7 @@ function WaveformDecor() {
     <svg className="project-decor-wave" viewBox="0 0 320 64" fill="none" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
       {bars.map(([x, y, h], i) => (
         <rect key={i} x={x} y={y} width="8" height={h} rx="4"
-          fill="#c084fc" opacity={0.10 + (i % 5) * 0.035} />
+  fill="#f015a0" opacity={0.10 + (i % 5) * 0.035} />
       ))}
     </svg>
   );

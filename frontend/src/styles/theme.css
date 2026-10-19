@@ -13,10 +13,10 @@
   --text-secondary: #cccccc;
   --text-muted: #888888;
   
-  /* Accent colors (pink-purple) */
-  --accent-primary: #c084fc;
-  --accent-secondary: #a855f7;
-  --accent-hover: #b06de8;
+  /* Accent colors (fuchsia) */
+  --accent-primary: #f015a0;
+  --accent-secondary: #c8108a;
+  --accent-hover: #d4129a;
   
   /* Feedback colors */
   --color-success: #10b981;

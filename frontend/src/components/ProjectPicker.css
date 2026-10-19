@@ -99,8 +99,8 @@
   align-items: center;
   gap: var(--spacing-sm);
   padding: 4px 10px;
-  background: rgba(192, 132, 252, 0.1);
-  border: 1px solid rgba(192, 132, 252, 0.25);
+  background: rgba(240, 21, 160, 0.1);
+  border: 1px solid rgba(240, 21, 160, 0.25);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
 }
@@ -252,7 +252,7 @@
 }
 
 .project-picker-item.selected {
-  background: rgba(192, 132, 252, 0.08);
+  background: rgba(240, 21, 160, 0.08);
 }
 
 .project-picker-item-name {

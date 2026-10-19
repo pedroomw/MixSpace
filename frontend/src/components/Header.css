@@ -1,6 +1,6 @@
 .header {
   background: var(--bg-secondary);
-  border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+  border-bottom: 1px solid rgba(240, 21, 160, 0.15);
   padding: 0 20px;
   height: 48px;
   flex-shrink: 0;
@@ -18,6 +18,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .header-logo-name {
@@ -48,15 +52,15 @@
 }
 
 .header-profile:hover {
-  background: rgba(192, 132, 252, 0.08);
-  border-color: rgba(192, 132, 252, 0.25);
+  background: rgba(240, 21, 160, 0.08);
+  border-color: rgba(240, 21, 160, 0.25);
 }
 
 .header-avatar {
   width: 26px;
   height: 26px;
-  background: rgba(192,132,252,0.15);
-  border: 1px solid rgba(192,132,252,0.3);
+  background: rgba(240, 21, 160,0.15);
+  border: 1px solid rgba(240, 21, 160,0.3);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -98,4 +102,12 @@
   .header-username { display: none; }
   .header-logout-btn span { display: none; }
   .header-logout-btn { padding: 5px 7px; }
+}
+
+/* Logo image */
+.header-logo-img {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  mix-blend-mode: screen;
 }

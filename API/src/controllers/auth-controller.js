@@ -79,15 +79,19 @@ class AuthController {
         return res.status(200).json({ status: 'ready', token })
     }
 
-    getMe = (req, res) => {
+    getMe = async (req, res) => {
         const userID = req.user.userId
         try {
+<<<<<<< HEAD
             const myUser = authService.getMyUser(userID)
             return res.status(200).json({message: myUser})
+=======
+            const myUser = await authService.getMyUser(userID)
+            res.status(200).json(myUser)
+>>>>>>> 98cc42e61cb402def90d96bb29310cdf834c05ff
         } catch (err){
-            return res.status(500).json({error: err})
+            return res.status(500).json({ error: err.message || 'Error al obtener el perfil' })
         }
-
     }
 }
 

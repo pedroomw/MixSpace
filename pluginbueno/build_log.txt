@@ -1,0 +1,110 @@
+=== Limpiando cache CMake ===
+=== Configurando CMake ===
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.22631.
+-- The C compiler identification is MSVC 19.44.35223.0
+-- The CXX compiler identification is MSVC 19.44.35223.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring juceaide
+-- Building juceaide
+-- Exporting juceaide
+-- Testing juceaide
+-- Finished setting up juceaide
+-- Found WebView2: C:/Users/devandroid/AppData/Local/PackageManagement/NuGet/Packages/Microsoft.Web.WebView2.1.0.3485.44/build/native/include
+-- Configuring done (5.0s)
+-- Generating done (0.5s)
+-- Build files have been written to: C:/Users/devandroid/Downloads/MixSpace/pluginbueno/build
+=== Compilando Release ===
+Versión de MSBuild 17.14.40+3e7442088 para .NET Framework
+
+  Checking File Globs
+  MixSpace_rc_lib.vcxproj -> C:\Users\devandroid\Downloads\MixSpace\pluginbueno\build\MixSpace_rc_lib.dir\Release\MixSpace_rc_lib.lib
+  Building VST3 manifest helper for MixSpace
+  -- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.22631.
+  -- Configuring done (0.0s)
+  -- Generating done (0.0s)
+  -- Build files have been written to: C:/Users/devandroid/Downloads/MixSpace/pluginbueno/build/vst3_helpers/MixSpace
+  Versi├│n de MSBuild 17.14.40+3e7442088 para .NET Framework
+  
+    1>Checking Build System
+    Building Custom Rule C:/Users/devandroid/Desktop/JUCE-master/JUCE-master/extras/Build/CMake/juce_vst3_helper/CMakeLists.txt
+    juce_VST3ManifestHelper.cpp
+    vst3_helper.vcxproj -> C:\Users\devandroid\Downloads\MixSpace\pluginbueno\build\vst3_helpers\MixSpace\vst3_helper.exe
+    Building Custom Rule C:/Users/devandroid/Desktop/JUCE-master/JUCE-master/extras/Build/CMake/juce_vst3_helper/CMakeLists.txt
+  PluginProcessor.cpp
+  PluginEditor.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_data_structures.cpp
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  juce_audio_processors_headless_lv2_libs.cpp
+  juce_audio_basics.cpp
+  juce_audio_utils.cpp
+  juce_audio_formats.cpp
+  juce_audio_devices.cpp
+  juce_graphics_Sheenbidi.c
+  juce_graphics_libjpg_1.c
+  juce_graphics_libjpg_2.c
+  juce_graphics_libjpg_3.c
+  juce_graphics_libpng.c
+  juce_graphics_libwebp_dec.c
+  juce_graphics_libwebp_dsp_dec.c
+  juce_graphics_libwebp_dsp_dec_avx2.c
+  juce_graphics_libwebp_dsp_dec_sse41.c
+  juce_graphics_libwebp_dsp_enc.c
+  juce_graphics_libwebp_dsp_enc_avx2.c
+  juce_graphics_libwebp_dsp_enc_sse41.c
+  juce_graphics_libwebp_enc.c
+  juce_graphics_libwebp_sharpyuv.c
+  juce_graphics_libwebp_utils.c
+  juce_graphics_lunasvg.c
+  juce_core_zlib.c
+  juce_audio_formats_flac_1.c
+  juce_audio_formats_flac_2.c
+  juce_audio_formats_ogg.c
+  juce_audio_formats_opus.c
+  juce_audio_formats_opusfile.c
+  MixSpace.vcxproj -> C:\Users\devandroid\Downloads\MixSpace\pluginbueno\build\MixSpace_artefacts\Release\MixSpace_SharedCode.lib
+  Building Custom Rule C:/Users/devandroid/Downloads/MixSpace/pluginbueno/CMakeLists.txt
+  juce_audio_plugin_client_AAX.cpp
+  juce_audio_plugin_client_AAX_utils.cpp
+  juce_audio_plugin_client_ARA.cpp
+  juce_audio_plugin_client_LV2.cpp
+  juce_audio_plugin_client_Standalone.cpp
+  juce_audio_plugin_client_Unity.cpp
+  juce_audio_plugin_client_VST2.cpp
+  juce_audio_plugin_client_VST3.cpp
+     Creando biblioteca C:/Users/devandroid/Downloads/MixSpace/pluginbueno/build/MixSpace_artefacts/Release/VST3/MixSpace.lib y objeto C:/Users/devandroid/Downloads/MixSpace/pluginbueno/build/MixSpace_artefacts/Release/VST3/MixSpace.exp
+  Generando código
+  Generación de código finalizada
+  MixSpace_VST3.vcxproj -> C:\Users\devandroid\Downloads\MixSpace\pluginbueno\build\MixSpace_artefacts\Release\VST3\MixSpace.vst3\Contents\x86_64-win\MixSpace.vst3
+  removing moduleinfo.json
+  creating C:/Users/devandroid/Downloads/MixSpace/pluginbueno/build/MixSpace_artefacts/Release/VST3/MixSpace.vst3/Contents/Resources/moduleinfo.json
+  Building Custom Rule C:/Users/devandroid/Downloads/MixSpace/pluginbueno/CMakeLists.txt
+=== Buscando VST3 ===
+VST3 encontrado!
+=== Copiando VST3 a VST3 comun ===
+Acceso denegado
+No se puede crear el directorio: C:\Program Files\Common Files\VST3\MixSpace.vst3
+0 archivo(s) copiado(s)
+Plugin copiado correctamente
+=== BUILD_DONE ===

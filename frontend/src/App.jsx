@@ -6,6 +6,7 @@ import ProjectSidebar from './components/ProjectSidebar';
 import ProjectDetail from './components/ProjectDetail';
 import CreateProjectModal from './components/CreateProjectModal';
 import { getProjects, createProject, resolvePluginSession, getMe } from './services/apiClient';
+import logoImg from '../imagenes/Logo mixspace fucsia.jfif';
 import './App.css';
 
 function App() {
@@ -132,7 +133,7 @@ function App() {
 
   return (
     <div className="app">
-      <Header user={user} onLogout={handleLogout} />
+      <Header user={user} onLogout={handleLogout} onGoHome={() => setSelectedProject(null)} />
 
       {pluginSessionStatus === 'resolving' && (
         <div className="plugin-banner resolving">Conectando con FL Studio…</div>
@@ -180,14 +181,7 @@ function App() {
       <footer className="app-footer">
         <div className="footer-inner">
           <div className="footer-logo">
-            <svg width="24" height="17" viewBox="0 0 46 32" fill="none">
-              <rect x="0"  y="8"  width="5" height="16" rx="2.5" fill="#c084fc" opacity="0.8"/>
-              <rect x="8"  y="4"  width="5" height="24" rx="2.5" fill="#c084fc" opacity="0.8"/>
-              <rect x="16" y="0"  width="5" height="32" rx="2.5" fill="#c084fc" opacity="0.8"/>
-              <rect x="24" y="6"  width="5" height="20" rx="2.5" fill="#c084fc" opacity="0.8"/>
-              <rect x="32" y="10" width="5" height="12" rx="2.5" fill="#c084fc" opacity="0.8"/>
-            </svg>
-            MixSpace<sup>®</sup>
+            <img src={logoImg} alt="MixSpace" className="footer-logo-img" />
           </div>
           <span className="footer-credits">By Pods and Peps. &nbsp; All credits reserved to MixSpace Co.</span>
         </div>
