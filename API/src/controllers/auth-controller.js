@@ -25,11 +25,43 @@ class AuthController {
             if (!email || !password) {
                 return res.status(400).json({ error: 'Email y contraseña son requeridos' })
             }
-            const token = await authService.login(email, password)
-            res.status(200).json(token)
+            const tokens = await authService.login(email, password)
+            res.status(200).json(tokens)
         } catch (error) {
             console.log('Error en login: ' + error.message)
             res.status(401).json({ error: error.message })
+        }
+    }
+
+    /**
+     * POST /auth/refresh
+     * Body: { refresh_token: string }
+     * Returns: { access_token: string, refresh_token: string }
+     */
+    refresh = async (req, res) => {
+        try {
+            const { refresh_token } = req.body
+            if (!refresh_token) {
+                return res.status(400).json({ error: 'refresh_token es requerido' })
+            }
+            const tokens = await authService.refresh(refresh_token)
+            res.status(200).json(tokens)
+        } catch (error) {
+            console.log('Error en refresh: ' + error.message)
+            res.status(401).json({ error: error.message })
+        }
+    }
+
+    /**
+     * POST /auth/logout  (optional but recommended)
+     * Invalidates the refresh token stored in the DB.
+     */
+    logout = async (req, res) => {
+        try {
+            await authService.logout(req.user.userId)
+            res.status(200).json({ ok: true })
+        } catch (error) {
+            res.status(500).json({ error: error.message })
         }
     }
 
@@ -82,14 +114,9 @@ class AuthController {
     getMe = async (req, res) => {
         const userID = req.user.userId
         try {
-<<<<<<< HEAD
-            const myUser = authService.getMyUser(userID)
-            return res.status(200).json({message: myUser})
-=======
             const myUser = await authService.getMyUser(userID)
-            res.status(200).json(myUser)
->>>>>>> 98cc42e61cb402def90d96bb29310cdf834c05ff
-        } catch (err){
+            return res.status(200).json(myUser)
+        } catch (err) {
             return res.status(500).json({ error: err.message || 'Error al obtener el perfil' })
         }
     }

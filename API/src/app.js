@@ -19,7 +19,7 @@ app.use(cors({
     if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true);
     callback(new Error(`CORS: origin not allowed — ${origin}`));
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }))
 

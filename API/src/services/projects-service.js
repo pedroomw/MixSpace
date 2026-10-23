@@ -5,7 +5,6 @@ const repo = new ProjectsRepository()
 class ProjectsService {
     GetProjectsByUserID = async (userID) => {
         if (!userID) throw new Error('userID es requerido')
-
         const projects = await repo.GetProjectsByUserID(userID)
         return projects
     }
@@ -13,6 +12,13 @@ class ProjectsService {
     CreateProject = async (userID, name, description, tags = []) => {
         if (!userID) throw new Error('userID es requerido')
         const project = await repo.CreateProject(userID, name, description, tags)
+        return project
+    }
+
+    SetProjectVisibility = async (projectID, userID, isPublic) => {
+        if (!projectID) throw new Error('projectID es requerido')
+        if (typeof isPublic !== 'boolean') throw new Error('El valor de visibilidad debe ser true o false')
+        const project = await repo.SetProjectVisibility(projectID, userID, isPublic)
         return project
     }
 }

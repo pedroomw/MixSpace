@@ -83,11 +83,22 @@
   opacity: 0.55;
 }
 
+/* Decorative rings — radial sound wave motif */
+.detail-card-decor-rings {
+  position: absolute;
+  top: 50%;
+  right: -30px;
+  transform: translateY(-50%);
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+}
+
 /* Card body (info + actions) */
 .detail-card-body {
   position: relative;
   z-index: 1;
-  padding: 28px 30px 26px;
+  padding: 28px 30px 20px;
 }
 
 /* Project icon */
@@ -161,6 +172,7 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 .detail-action-primary {
@@ -184,10 +196,12 @@
   transform: translateY(-1px);
 }
 
-.detail-action-secondary {
+/* ── Versions toggle — full-width button below actions ── */
+.detail-action-versions-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
   padding: 8px 14px;
   background: var(--bg-input);
   border: 1px solid var(--bg-input-alt);
@@ -199,11 +213,17 @@
   cursor: pointer;
   transition: all var(--transition-fast);
 }
-.detail-action-secondary:hover,
-.detail-action-secondary.active {
+.detail-action-versions-toggle:hover,
+.detail-action-versions-toggle.active {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  background: rgba(240, 21, 160,0.07);
+  background: rgba(240, 21, 160, 0.07);
+}
+
+.detail-action-versions-toggle-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .detail-action-ghost {
@@ -245,32 +265,23 @@
 .detail-versions {
   position: relative;
   z-index: 1;
+  padding: 0 0 8px;
+  animation: versionsSlideIn 0.18s ease;
+}
+
+@keyframes versionsSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .detail-versions-divider {
   height: 1px;
-  background: rgba(255,255,255,0.06);
-  margin: 0 30px;
+  background: rgba(255,255,255,0.05);
+  margin: 8px 20px 0;
 }
 
 .detail-versions-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 30px 10px;
-}
-
-.detail-versions-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-}
-
-.detail-versions-count {
-  font-size: 11px;
-  color: var(--text-muted);
+  display: none; /* label redundante — la info está en el botón */
 }
 
 .versions-loading {
@@ -305,8 +316,8 @@
 .versions-list {
   list-style: none;
   margin: 0;
-  padding: 0 0 8px;
-  max-height: 260px;
+  padding: 0 0 12px;
+  max-height: 340px;
   overflow-y: auto;
 }
 
@@ -314,11 +325,12 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 18px 10px 20px;
+  padding: 9px 20px 9px 20px;
   transition: background var(--transition-fast);
-  border-top: 1px solid rgba(255,255,255,0.04);
+  border-top: 1px solid rgba(255,255,255,0.035);
 }
-.version-item:hover { background: rgba(255,255,255,0.025); }
+.version-item:first-child { border-top: none; }
+.version-item:hover { background: rgba(255,255,255,0.02); }
 
 /* Latest version gets a subtle left accent */
 .version-item--latest {
@@ -627,3 +639,107 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .hidden-input { display: none; }
+
+/* ── Visibility toggle button ── */
+.detail-action-visibility {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.detail-action-visibility:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Private state — muted lock */
+.detail-action-visibility.is-private {
+  color: var(--text-muted);
+  border-color: rgba(255,255,255,0.08);
+}
+.detail-action-visibility.is-private:hover:not(:disabled) {
+  border-color: rgba(255,255,255,0.2);
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.04);
+}
+
+/* Public state — accent globe */
+.detail-action-visibility.is-public {
+  color: #3ecf8e;
+  border-color: rgba(62, 207, 142, 0.3);
+  background: rgba(62, 207, 142, 0.07);
+}
+.detail-action-visibility.is-public:hover:not(:disabled) {
+  background: rgba(62, 207, 142, 0.13);
+  border-color: rgba(62, 207, 142, 0.5);
+}
+
+.detail-visibility-error {
+  font-size: 11px;
+  color: var(--color-error);
+  margin: 6px 0 0;
+}
+
+/* ── Visibility badge — top-right corner of card ── */
+.detail-visibility-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.detail-visibility-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.detail-visibility-btn.is-private {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-muted);
+}
+.detail-visibility-btn.is-private:hover:not(:disabled) {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+}
+.detail-visibility-btn.is-public {
+  background: rgba(62, 207, 142, 0.12);
+  border: 1px solid rgba(62, 207, 142, 0.3);
+  color: #3ecf8e;
+}
+.detail-visibility-btn.is-public:hover:not(:disabled) {
+  background: rgba(62, 207, 142, 0.2);
+}
+
+.detail-visibility-error {
+  font-size: 11px;
+  color: var(--color-error);
+  margin: -10px 0 6px;
+}
+
+/* ── Chevron on Cambios button ── */
+.detail-action-chevron {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+.detail-action-chevron.open {
+  transform: rotate(180deg);
+}

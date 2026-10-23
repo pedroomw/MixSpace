@@ -1,19 +1,130 @@
 import axios from 'axios';
+import { getTokens, setTokens, clearAll } from './tokenStore';
+import { refreshAccessToken } from '../api/auth';
 
-// Configure axios instance
+// ─────────────────────────────────────────────────────────────────────────────
+// Axios instance
+// ─────────────────────────────────────────────────────────────────────────────
 const apiClient = axios.create({
   baseURL: 'http://localhost:3000',
-  timeout: 60000, // 60 seconds
-  headers: {
-    'Accept': 'application/json'
-  }
+  timeout: 60000,
+  headers: { Accept: 'application/json' },
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Request interceptor — attach Bearer token automatically
+// ─────────────────────────────────────────────────────────────────────────────
+apiClient.interceptors.request.use((config) => {
+  const { accessToken } = getTokens();
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Refresh-token state (shared across concurrent requests)
+// ─────────────────────────────────────────────────────────────────────────────
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+/** Notify all queued requests that a new access token is available. */
+function onRefreshSuccess(newToken) {
+  refreshSubscribers.forEach((cb) => cb(newToken));
+  refreshSubscribers = [];
+}
+
+/** Notify all queued requests that the refresh failed. */
+function onRefreshFailure(error) {
+  refreshSubscribers.forEach((cb) => cb(null, error));
+  refreshSubscribers = [];
+}
+
+/**
+ * Queue a request until the ongoing refresh resolves.
+ * Returns a promise that re-issues the original request once a token is available.
+ */
+function queueRequest(originalRequest) {
+  return new Promise((resolve, reject) => {
+    refreshSubscribers.push((newToken, err) => {
+      if (err || !newToken) return reject(err || new Error('Refresh failed'));
+      originalRequest.headers.Authorization = `Bearer ${newToken}`;
+      resolve(apiClient(originalRequest));
+    });
+  });
+}
+
+/** Callback invoked when all refresh attempts fail — wipe auth and reload. */
+function handleAuthExpired() {
+  clearAll();
+  // Soft redirect: let the React app re-render the Login screen
+  window.dispatchEvent(new CustomEvent('mixspace:auth:expired'));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Response interceptor — transparent refresh on 401
+// ─────────────────────────────────────────────────────────────────────────────
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Only intercept 401s that haven't been retried already
+    if (error.response?.status !== 401 || originalRequest._retried) {
+      return Promise.reject(error);
+    }
+
+    // Don't try to refresh the refresh endpoint itself (avoid infinite loop)
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      handleAuthExpired();
+      return Promise.reject(error);
+    }
+
+    originalRequest._retried = true;
+
+    const { refreshToken } = getTokens();
+
+    if (!refreshToken) {
+      handleAuthExpired();
+      return Promise.reject(error);
+    }
+
+    // If a refresh is already in flight, queue this request
+    if (isRefreshing) {
+      return queueRequest(originalRequest);
+    }
+
+    isRefreshing = true;
+
+    try {
+      const data = await refreshAccessToken(refreshToken);
+      const newAccessToken  = data.access_token;
+      const newRefreshToken = data.refresh_token ?? refreshToken; // rotate if provided
+
+      setTokens(newAccessToken, newRefreshToken);
+
+      onRefreshSuccess(newAccessToken);
+      isRefreshing = false;
+
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      isRefreshing = false;
+      onRefreshFailure(refreshError);
+      handleAuthExpired();
+      return Promise.reject(refreshError);
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API functions
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Resolve a plugin login session by delivering the JWT to the waiting plugin.
- * Called by the web frontend after a successful login when ?sessionId is present.
- * @param {string} sessionId - The session ID the plugin generated
- * @param {string} token     - The JWT obtained from login
+ * @param {string} sessionId
+ * @param {string} token
  * @returns {Promise<{ok: boolean, error?: string}>}
  */
 export async function resolvePluginSession(sessionId, token) {
@@ -28,74 +139,43 @@ export async function resolvePluginSession(sessionId, token) {
 }
 
 /**
- * Fetch all projects belonging to the authenticated user
+ * Fetch all projects belonging to the authenticated user.
  * @returns {Promise<{ok: boolean, projects?: Array, error?: string}>}
  */
 export async function getProjects() {
   try {
-    const token = localStorage.getItem('mixspace_token');
-
-    const response = await apiClient.get('/projects', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
-
-    // Normalise: accept array at root or inside a `projects` key
+    const response = await apiClient.get('/projects');
     const data = response.data;
     const projects = Array.isArray(data) ? data : (data?.projects ?? []);
-
     return { ok: true, projects };
   } catch (error) {
     let errorMessage = 'No se pudieron cargar los proyectos';
-
-    if (error.code === 'ECONNREFUSED') {
-      errorMessage = 'No se pudo conectar con el servidor';
-    } else if (error.response?.status === 401) {
-      errorMessage = 'Sesión expirada. Vuelva a iniciar sesión';
-    } else if (error.response) {
-      errorMessage = error.response.data?.error || errorMessage;
-    }
-
+    if (error.code === 'ECONNREFUSED')         errorMessage = 'No se pudo conectar con el servidor';
+    else if (error.response?.status === 401)   errorMessage = 'Sesión expirada. Volvé a iniciar sesión';
+    else if (error.response)                   errorMessage = error.response.data?.error || errorMessage;
     return { ok: false, error: errorMessage, projects: [] };
   }
 }
 
 /**
- * Upload a file with metadata to the backend
- * @param {Object} fileData - The upload payload
- * @param {File} fileData.file - The file to upload
- * @param {string} fileData.description - The project description
- * @param {string} fileData.project_id - The project ID
+ * Upload a file with metadata.
+ * @param {{ file: File, description: string, project_id: string, tags?: string[] }} fileData
  * @returns {Promise<{ok: boolean, result?: any, error?: string}>}
  */
 export async function uploadFile({ file, description, project_id, tags = [] }) {
   try {
-    // Retrieve auth token stored during login
-    const token = localStorage.getItem('mixspace_token');
-
-    // Create FormData — field names must match what multer/controller expect
     const formData = new FormData();
     formData.append('file', file);
     formData.append('description', description);
     formData.append('project_id', project_id);
-    // Tags must be JSON-stringified since FormData only supports strings
     formData.append('tags', JSON.stringify(tags));
 
-    // Send POST request to the correct endpoint with Bearer token
     const response = await apiClient.post('/versions/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      }
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
 
-    // Return success response
-    return {
-      ok: true,
-      result: response.data
-    };
-
+    return { ok: true, result: response.data };
   } catch (error) {
-    // Handle different error types
     let errorMessage = 'Error desconocido. Intente nuevamente';
 
     if (error.code === 'ECONNREFUSED') {
@@ -104,55 +184,10 @@ export async function uploadFile({ file, description, project_id, tags = [] }) {
       errorMessage = 'La petición excedió el tiempo de espera. Intente nuevamente';
     } else if (error.response) {
       const status = error.response.status;
-      
-      if (status === 400) {
-        // Use specific error message from API if available
-        errorMessage = error.response.data?.error || 'Error de validación (código 400)';
-      } else if (status === 413) {
-        errorMessage = 'El archivo es demasiado grande';
-      } else if (status >= 500) {
-        errorMessage = `Error del servidor (código ${status}). Intente nuevamente más tarde`;
-      } else if (status >= 400) {
-        errorMessage = error.response.data?.error || `Error de validación (código ${status})`;
-      }
-    }
-
-    return {
-      ok: false,
-      error: errorMessage
-    };
-  }
-}
-
-/**
- * Create a new project for the authenticated user
- * @param {Object} projectData
- * @param {string} projectData.name        - Project name (required)
- * @param {string} [projectData.description] - Optional description
- * @returns {Promise<{ok: boolean, project?: Object, error?: string}>}
- */
-export async function createProject({ name, description = '', tags = [] }) {
-  try {
-    const token = localStorage.getItem('mixspace_token');
-
-    const response = await apiClient.post(
-      '/projects',
-      { name, description, tags },
-      { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-    );
-
-    return { ok: true, project: response.data };
-  } catch (error) {
-    let errorMessage = 'No se pudo crear el proyecto';
-
-    if (error.code === 'ECONNREFUSED') {
-      errorMessage = 'No se pudo conectar con el servidor';
-    } else if (error.response?.status === 401) {
-      errorMessage = 'Sesión expirada. Volvé a iniciar sesión';
-    } else if (error.response?.status === 400) {
-      errorMessage = error.response.data?.error || 'Datos inválidos';
-    } else if (error.response) {
-      errorMessage = error.response.data?.error || errorMessage;
+      if (status === 400)       errorMessage = error.response.data?.error || 'Error de validación (código 400)';
+      else if (status === 413)  errorMessage = 'El archivo es demasiado grande';
+      else if (status >= 500)   errorMessage = `Error del servidor (código ${status}). Intente nuevamente más tarde`;
+      else if (status >= 400)   errorMessage = error.response.data?.error || `Error de validación (código ${status})`;
     }
 
     return { ok: false, error: errorMessage };
@@ -160,19 +195,36 @@ export async function createProject({ name, description = '', tags = [] }) {
 }
 
 /**
- * Download a version file by ID.
- * Calls the authenticated endpoint, follows the redirect to the Supabase
- * signed URL, and triggers a browser file download.
- * @param {string|number} id       - Version ID
- * @param {string}        filename - Suggested filename for the download
+ * Create a new project.
+ * @param {{ name: string, description?: string, tags?: string[] }} projectData
+ * @returns {Promise<{ok: boolean, project?: Object, error?: string}>}
+ */
+export async function createProject({ name, description = '', tags = [] }) {
+  try {
+    const response = await apiClient.post('/projects', { name, description, tags });
+    return { ok: true, project: response.data };
+  } catch (error) {
+    let errorMessage = 'No se pudo crear el proyecto';
+    if (error.code === 'ECONNREFUSED')         errorMessage = 'No se pudo conectar con el servidor';
+    else if (error.response?.status === 401)   errorMessage = 'Sesión expirada. Volvé a iniciar sesión';
+    else if (error.response?.status === 400)   errorMessage = error.response.data?.error || 'Datos inválidos';
+    else if (error.response)                   errorMessage = error.response.data?.error || errorMessage;
+    return { ok: false, error: errorMessage };
+  }
+}
+
+/**
+ * Download a version file by ID and trigger a browser download.
+ * @param {string|number} id
+ * @param {string} filename
  * @returns {Promise<{ok: boolean, error?: string}>}
  */
 export async function downloadVersion(id, filename) {
   try {
-    const token = localStorage.getItem('mixspace_token');
+    const { accessToken } = getTokens();
 
     const response = await fetch(`http://localhost:3000/versions/download/${id}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     });
 
     if (!response.ok) {
@@ -197,17 +249,14 @@ export async function downloadVersion(id, filename) {
 }
 
 /**
- * Update tags on a specific version
- * @param {string|number} id   - Version ID
- * @param {string[]}      tags - Array of tag strings
+ * Update tags on a specific version.
+ * @param {string|number} id
+ * @param {string[]} tags
  * @returns {Promise<{ok: boolean, result?: any, error?: string}>}
  */
 export async function updateVersionTags(id, tags) {
   try {
-    const token = localStorage.getItem('mixspace_token');
-    const response = await apiClient.patch(`/versions/${id}/tags`, { tags }, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
+    const response = await apiClient.patch(`/versions/${id}/tags`, { tags });
     return { ok: true, result: response.data };
   } catch (error) {
     const errorMessage = error.response?.data?.error || error.message || 'Error al actualizar etiquetas';
@@ -216,30 +265,34 @@ export async function updateVersionTags(id, tags) {
 }
 
 /**
- * Fetch the authenticated user's profile from the server.
- * Returns id, email, and created_at from the users table.
- * @returns {Promise<{ok: boolean, user?: {id: string, email: string, created_at: string}, error?: string}>}
+ * Fetch the authenticated user's profile.
+ * @returns {Promise<{ok: boolean, user?: Object, error?: string}>}
  */
 export async function getMe() {
   try {
-    const token = localStorage.getItem('mixspace_token');
-
-    const response = await apiClient.get('/auth/me', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
-
+    const response = await apiClient.get('/auth/me');
     return { ok: true, user: response.data };
   } catch (error) {
     let errorMessage = 'No se pudo cargar el perfil';
+    if (error.code === 'ECONNREFUSED')         errorMessage = 'No se pudo conectar con el servidor';
+    else if (error.response?.status === 401)   errorMessage = 'Sesión expirada. Volvé a iniciar sesión';
+    else if (error.response)                   errorMessage = error.response.data?.error || errorMessage;
+    return { ok: false, error: errorMessage };
+  }
+}
 
-    if (error.code === 'ECONNREFUSED') {
-      errorMessage = 'No se pudo conectar con el servidor';
-    } else if (error.response?.status === 401) {
-      errorMessage = 'Sesión expirada. Volvé a iniciar sesión';
-    } else if (error.response) {
-      errorMessage = error.response.data?.error || errorMessage;
-    }
-
+/**
+ * Update the visibility (public/private) of a project.
+ * @param {string|number} id
+ * @param {boolean} isPublic
+ * @returns {Promise<{ok: boolean, project?: Object, error?: string}>}
+ */
+export async function setProjectVisibility(id, isPublic) {
+  try {
+    const response = await apiClient.patch(`/projects/${id}/visibility`, { public: isPublic });
+    return { ok: true, project: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.error || error.message || 'No se pudo cambiar la visibilidad';
     return { ok: false, error: errorMessage };
   }
 }
@@ -249,7 +302,8 @@ export default {
   getMe,
   getProjects,
   createProject,
+  setProjectVisibility,
   uploadFile,
   downloadVersion,
-  updateVersionTags
+  updateVersionTags,
 };

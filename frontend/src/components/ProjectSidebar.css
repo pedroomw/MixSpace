@@ -130,3 +130,24 @@
 @media (max-width: 900px) {
   .project-sidebar { display: none; }
 }
+
+/* ── Visibility badge ── */
+.sidebar-visibility-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.sidebar-visibility-badge.public {
+  color: #3ecf8e;
+  background: rgba(62, 207, 142, 0.12);
+}
+
+.sidebar-visibility-badge.private {
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.05);
+}

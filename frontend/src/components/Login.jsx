@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { loginUser, registerUser } from '../api/auth'
+import { setTokens, setUser } from '../services/tokenStore'
 import logoImg from '../../imagenes/Logo mixspace fucsia.jfif'
 
 function Login({ onLoginSuccess }) {
@@ -22,25 +23,27 @@ function Login({ onLoginSuccess }) {
             if (isRegistering) {
                 if (data.session) {
                     const user = { ...data.user, email: data.user.email || email }
-                    localStorage.setItem('mixspace_token', data.session.access_token)
-                    localStorage.setItem('mixspace_user', JSON.stringify(user))
+                    setTokens(data.session.access_token, data.session.refresh_token)
+                    setUser(user)
                     onLoginSuccess(user)
                 } else {
                     setError('Registro exitoso. Revisá tu email para confirmar la cuenta.')
                 }
             } else {
-                // Login returns a bare JWT string
-                const token = data
+                // Login may return a bare JWT string or an object with tokens
+                const accessToken  = data?.access_token  ?? data
+                const refreshToken = data?.refresh_token ?? null
+
                 // Decode the email from the JWT payload (it's not a secret)
                 let username = email
                 try {
-                    const payload = JSON.parse(atob(token.split('.')[1]))
+                    const payload = JSON.parse(atob(accessToken.split('.')[1]))
                     if (payload.email) username = payload.email
                 } catch (_) { /* use raw email as fallback */ }
 
-                const user = { token, email: username }
-                localStorage.setItem('mixspace_token', token)
-                localStorage.setItem('mixspace_user', JSON.stringify(user))
+                const user = { email: username }
+                setTokens(accessToken, refreshToken)
+                setUser(user)
                 onLoginSuccess(user)
             }
         } catch (err) {

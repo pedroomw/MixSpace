@@ -31,11 +31,29 @@ class ProjectsRepository {
         try {
             const { data, error } = await supabase
                 .from('Projects')
-                .insert([{name: name, description: description, user_id: userID, tags: tags}])
+                .insert([{ name, description, user_id: userID, tags, public: false }])
+                .select()
+                .single()
                 .throwOnError()
-            if(error) {
-                throw error
-            }
+            if (error) throw error
+            return data
+        } catch (error) {
+            console.log("El error es: " + error)
+            throw error
+        }
+    }
+
+    SetProjectVisibility = async (projectID, userID, isPublic) => {
+        try {
+            const { data, error } = await supabase
+                .from('Projects')
+                .update({ public: isPublic })
+                .eq('id', projectID)
+                .eq('user_id', userID) // ensure ownership
+                .select()
+                .single()
+                .throwOnError()
+            if (error) throw error
             return data
         } catch (error) {
             console.log("El error es: " + error)

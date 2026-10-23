@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { uploadFile, downloadVersion, updateVersionTags } from '../services/apiClient';
+import { uploadFile, downloadVersion, updateVersionTags, setProjectVisibility } from '../services/apiClient';
 import axios from 'axios';
 import TagPicker from './TagPicker';
+import { getTokens } from '../services/tokenStore';
 import './ProjectDetail.css';
 
 const API_BASE = 'http://localhost:3000';
 
 async function fetchVersions(projectId) {
-  const token = localStorage.getItem('mixspace_token');
+  const { accessToken } = getTokens();
   try {
     const response = await axios.get(`${API_BASE}/versions/project/${projectId}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
     });
     return Array.isArray(response.data) ? response.data : [];
   } catch (err) {
@@ -256,13 +257,18 @@ function VersionMenu({ version, onEditTags, onDownload }) {
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-function ProjectDetail({ project, onGoHome, onCreateProject }) {
+function ProjectDetail({ project, onGoHome, onCreateProject, onProjectUpdated }) {
   const [versions, setVersions] = useState([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [versionsError, setVersionsError] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
-  const [editingTagsFor, setEditingTagsFor] = useState(null); // version object
+  const [editingTagsFor, setEditingTagsFor] = useState(null);
+
+  // Visibility state — initialise from the project prop (null treated as false)
+  const [isPublic, setIsPublic] = useState(project.public === true);
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
+  const [visibilityError, setVisibilityError] = useState('');
 
   const loadVersions = async () => {
     setLoadingVersions(true);
@@ -281,14 +287,30 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
     setVersions([]);
     setShowUpload(false);
     setShowVersions(false);
+    setIsPublic(project.public === true);
+    setVisibilityError('');
     loadVersions();
   }, [project.id]);
 
-  // Update tags locally after saving so we don't need a full reload
   const handleTagsSaved = (versionId, newTags) => {
     setVersions(prev =>
       prev.map(v => v.id === versionId ? { ...v, tags: newTags } : v)
     );
+  };
+
+  const handleToggleVisibility = async () => {
+    const next = !isPublic;
+    setTogglingVisibility(true);
+    setVisibilityError('');
+    const result = await setProjectVisibility(project.id, next);
+    setTogglingVisibility(false);
+    if (result.ok) {
+      setIsPublic(next);
+      // Notify parent so the sidebar badge can update too
+      onProjectUpdated?.({ ...project, public: next });
+    } else {
+      setVisibilityError(result.error);
+    }
   };
 
   const latestVersion = versions[0];
@@ -318,6 +340,41 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
 
         {/* Card top: info + actions */}
         <div className="detail-card-body">
+
+          {/* Decorative rings — sound wave / radial motif */}
+          <svg className="detail-card-decor-rings" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+            <circle cx="100" cy="100" r="40"  stroke="#f015a0" strokeWidth="1.2" opacity="0.18"/>
+            <circle cx="100" cy="100" r="62"  stroke="#f015a0" strokeWidth="1"   opacity="0.13"/>
+            <circle cx="100" cy="100" r="84"  stroke="#f015a0" strokeWidth="0.8" opacity="0.09"/>
+            <circle cx="100" cy="100" r="106" stroke="#f015a0" strokeWidth="0.6" opacity="0.06"/>
+            <circle cx="100" cy="100" r="8"   fill="#f015a0"   opacity="0.25"/>
+          </svg>
+
+          {/* Visibility toggle — top right corner */}
+          <button
+            className={`detail-visibility-btn${isPublic ? ' is-public' : ' is-private'}`}
+            onClick={handleToggleVisibility}
+            disabled={togglingVisibility}
+            title={isPublic ? 'Público — click para hacer privado' : 'Privado — click para hacer público'}
+          >
+            {togglingVisibility ? (
+              <span className="btn-spinner" aria-hidden="true" />
+            ) : isPublic ? (
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clipRule="evenodd"/>
+              </svg>
+            ) : (
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+              </svg>
+            )}
+            {isPublic ? 'Público' : 'Privado'}
+          </button>
+
+          {visibilityError && (
+            <p className="detail-visibility-error" role="alert">{visibilityError}</p>
+          )}
+
           <div className="detail-project-icon" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
               <path d="M9 19V6l12-3v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -367,19 +424,6 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
               Subir versión
             </button>
 
-            <button
-              className={`detail-action-secondary${showVersions ? ' active' : ''}`}
-              onClick={() => setShowVersions(v => !v)}
-            >
-              <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
-              </svg>
-              Cambios
-              {versions.length > 0 && (
-                <span className="detail-action-badge">{versions.length}</span>
-              )}
-            </button>
-
             {latestVersion && (
               <button className="detail-action-ghost"
                 onClick={() => downloadVersion(latestVersion.id, latestVersion.filename)}>
@@ -390,6 +434,28 @@ function ProjectDetail({ project, onGoHome, onCreateProject }) {
               </button>
             )}
           </div>
+
+          {/* Cambios — full width, below the other actions */}
+          <button
+            className={`detail-action-versions-toggle${showVersions ? ' active' : ''}`}
+            onClick={() => setShowVersions(v => !v)}
+          >
+            <span className="detail-action-versions-toggle-left">
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
+              </svg>
+              Cambios
+              {versions.length > 0 && (
+                <span className="detail-action-badge">{versions.length}</span>
+              )}
+            </span>
+            <svg
+              className={`detail-action-chevron${showVersions ? ' open' : ''}`}
+              width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+            >
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+            </svg>
+          </button>
         </div>
 
         {/* ── Historial — dentro de la misma card ── */}

@@ -6,6 +6,7 @@ import ProjectSidebar from './components/ProjectSidebar';
 import ProjectDetail from './components/ProjectDetail';
 import CreateProjectModal from './components/CreateProjectModal';
 import { getProjects, createProject, resolvePluginSession, getMe } from './services/apiClient';
+import { getTokens, getUser, setUser as storeUser, clearAll } from './services/tokenStore';
 import logoImg from '../imagenes/Logo mixspace fucsia.jfif';
 import './App.css';
 
@@ -28,25 +29,37 @@ function App() {
 
   const pluginSessionId = new URLSearchParams(window.location.search).get('sessionId');
 
-  // Restore session from localStorage on mount
+  // Restore session from tokenStore on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('mixspace_user');
-    const storedToken = localStorage.getItem('mixspace_token');
-    if (storedUser && storedToken) {
-      const parsed = JSON.parse(storedUser);
-      setUser(parsed);
+    const storedUser = getUser();
+    const { accessToken } = getTokens();
+    if (storedUser && accessToken) {
+      setUser(storedUser);
       // Enrich with server profile if id or created_at are missing
-      if (!parsed.id || !parsed.created_at) {
+      if (!storedUser.id || !storedUser.created_at) {
         getMe().then((result) => {
           if (result.ok) {
-            const enriched = { ...parsed, ...result.user };
+            const enriched = { ...storedUser, ...result.user };
             setUser(enriched);
-            localStorage.setItem('mixspace_user', JSON.stringify(enriched));
+            storeUser(enriched);
           }
         });
       }
     }
     setCheckingSession(false);
+  }, []);
+
+  // Listen for token expiration events dispatched by the apiClient interceptor.
+  // This fires when both the access token and the refresh token are invalid,
+  // so we force the user back to the login screen.
+  useEffect(() => {
+    const handleExpired = () => {
+      setUser(null);
+      setProjects([]);
+      setSelectedProject(null);
+    };
+    window.addEventListener('mixspace:auth:expired', handleExpired);
+    return () => window.removeEventListener('mixspace:auth:expired', handleExpired);
   }, []);
 
   // Fetch projects after login
@@ -62,19 +75,18 @@ function App() {
   // Resolve plugin session once logged in
   useEffect(() => {
     if (!user || !pluginSessionId) return;
-    const token = localStorage.getItem('mixspace_token');
-    if (!token) return;
+    const { accessToken } = getTokens();
+    if (!accessToken) return;
 
     setPluginSessionStatus('resolving');
-    resolvePluginSession(pluginSessionId, token).then((result) => {
+    resolvePluginSession(pluginSessionId, accessToken).then((result) => {
       setPluginSessionStatus(result.ok ? 'resolved' : 'error');
       if (result.ok) window.history.replaceState({}, '', window.location.pathname);
     });
   }, [user, pluginSessionId]);
 
   const handleLogout = () => {
-    localStorage.removeItem('mixspace_token');
-    localStorage.removeItem('mixspace_user');
+    clearAll();
     setUser(null);
     setProjects([]);
     setSelectedProject(null);
@@ -84,7 +96,7 @@ function App() {
     // Enrich the user object with server profile data (id, created_at)
     const result = await getMe();
     const enriched = result.ok ? { ...u, ...result.user } : u;
-    localStorage.setItem('mixspace_user', JSON.stringify(enriched));
+    storeUser(enriched);
     setUser(enriched);
   };
 
@@ -154,6 +166,10 @@ function App() {
                 key={selectedProject.id}
                 onGoHome={() => setSelectedProject(null)}
                 onCreateProject={handleOpenCreateModal}
+                onProjectUpdated={(updated) => {
+                  setSelectedProject(updated);
+                  setProjects(prev => prev.map(p => p.id === updated.id ? updated : p));
+                }}
               />
             : <HomeHero username={heroName} onCreateProject={handleOpenCreateModal} projectCount={projects.length} />
           }
