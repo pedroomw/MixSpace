@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken'
 const authRepository = new AuthRepository()
 
 class AuthService {
-    register = async (email, password) => {
-        const data = await authRepository.signUp(email, password)
+    register = async (email, password, country, username) => {
+        const data = await authRepository.signUp(email, password, country, username)
         return {
             user: data.user,
             session: data.session

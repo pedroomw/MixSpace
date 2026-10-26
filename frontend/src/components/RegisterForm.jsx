@@ -50,6 +50,7 @@ function RegisterForm({ onLoginSuccess, onSwitchToLogin }) {
         }
     } else {
          const message = 'Las contraseñas deben coincidir'
+         setError(message)
     }
         }
     

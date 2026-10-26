@@ -7,11 +7,11 @@ const pluginSessionService = new PluginSessionService()
 class AuthController {
     register = async (req, res) => {
         try {
-            const { email, password } = req.body
+            const { email, password, country, username } = req.body
             if (!email || !password) {
                 return res.status(400).json({ error: 'Email y contraseña son requeridos' })
             }
-            const result = await authService.register(email, password)
+            const result = await authService.register(email, password, country, username)
             res.status(201).json(result)
         } catch (error) {
             console.log('Error en register: ' + error.message)

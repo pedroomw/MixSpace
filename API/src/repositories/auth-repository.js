@@ -15,7 +15,7 @@ const supabaseAuth = createClient(supabaseUrl, supabaseServiceRoleKey, {
 })
 
 class AuthRepository {
-    signUp = async (email, password) => {
+    signUp = async (email, password, country, username) => {
         const { data, error } = await supabaseAuth.auth.signUp({ email, password })
         console.log('signUp data:', JSON.stringify(data))
         console.log('signUp error:', error)
@@ -23,7 +23,7 @@ class AuthRepository {
 
         const { data: profileData, error: profileError } = await supabaseAuth
             .from("Users")
-            .insert({ id: data.user.id, email: email })
+            .insert({ id: data.user.id, email: email, country: country, username: username })
             .select()
         console.log('insert profileData:', profileData)
         console.log('insert profileError:', profileError)
