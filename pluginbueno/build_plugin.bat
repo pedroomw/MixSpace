@@ -27,4 +27,15 @@ if exist "%BUILD_DIR%\MixSpace_artefacts\Release\VST3\MixSpace.vst3" (
     dir "%BUILD_DIR%\MixSpace_artefacts" /s /b 2>&1
 )
 
+echo === Buscando Standalone ===
+if exist "%BUILD_DIR%\MixSpace_artefacts\Release\Standalone\MixSpace.exe" (
+    echo Standalone encontrado!
+    echo === Copiando Standalone al escritorio ===
+    copy /Y "%BUILD_DIR%\MixSpace_artefacts\Release\Standalone\MixSpace.exe" "%USERPROFILE%\Desktop\MixSpace.exe"
+    echo Standalone copiado al escritorio
+) else (
+    echo Standalone no encontrado, buscando...
+    dir "%BUILD_DIR%\MixSpace_artefacts" /s /b 2>&1
+)
+
 echo === BUILD_DONE ===
