@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import Header from './components/Header';
-import Login from './components/Login';
+import LandingPage from './components/LandingPage';
+import LoginForm from './components/LoginForm';
+import RegisterForm from './components/RegisterForm';
 import HomeHero from './components/HomeHero';
 import ProjectSidebar from './components/ProjectSidebar';
 import ProjectDetail from './components/ProjectDetail';
@@ -13,6 +15,8 @@ import './App.css';
 function App() {
   const [user, setUser] = useState(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  // authView: null = landing pública, 'login' = form login, 'register' = form registro
+  const [authView, setAuthView] = useState(null);
 
   // Projects
   const [projects, setProjects] = useState([]);
@@ -57,6 +61,7 @@ function App() {
       setUser(null);
       setProjects([]);
       setSelectedProject(null);
+      setAuthView(null); // vuelve a la landing
     };
     window.addEventListener('mixspace:auth:expired', handleExpired);
     return () => window.removeEventListener('mixspace:auth:expired', handleExpired);
@@ -90,6 +95,7 @@ function App() {
     setUser(null);
     setProjects([]);
     setSelectedProject(null);
+    setAuthView(null); // vuelve a la landing
   };
 
   const handleLoginSuccess = async (u) => {
@@ -141,7 +147,32 @@ function App() {
 
   if (checkingSession) return null;
 
-  if (!user) return <Login onLoginSuccess={handleLoginSuccess} />;
+  // ── Sin sesión: landing page o formularios de auth ──────────────────────
+  if (!user) {
+    if (authView === 'login') {
+      return (
+        <LoginForm
+          onLoginSuccess={handleLoginSuccess}
+          onSwitchToRegister={() => setAuthView('register')}
+        />
+      );
+    }
+    if (authView === 'register') {
+      return (
+        <RegisterForm
+          onLoginSuccess={handleLoginSuccess}
+          onSwitchToLogin={() => setAuthView('login')}
+        />
+      );
+    }
+    // Vista por defecto: landing page pública
+    return (
+      <LandingPage
+        onLogin={() => setAuthView('login')}
+        onRegister={() => setAuthView('register')}
+      />
+    );
+  }
 
   return (
     <div className="app">

@@ -1,0 +1,237 @@
+/* ── Landing page pública ─────────────────────────────────────────────── */
+
+.landing {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* ── Header público ──────────────────────────────────────────────────── */
+.landing-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid rgba(240, 21, 160, 0.15);
+    padding: 0 24px;
+    height: 52px;
+    flex-shrink: 0;
+}
+
+.landing-header-content {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.landing-header-logo {
+    display: flex;
+    align-items: center;
+}
+
+.landing-header-logo-img {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+    mix-blend-mode: screen;
+}
+
+.landing-header-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ── Botones reutilizables ───────────────────────────────────────────── */
+.landing-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    background: var(--accent-secondary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-family);
+    cursor: pointer;
+    transition: background var(--transition-fast), transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+    box-shadow: 0 3px 14px rgba(200, 16, 138, 0.25);
+}
+
+.landing-btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 20px rgba(200, 16, 138, 0.35);
+}
+
+.landing-btn-primary:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.landing-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-family);
+    cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.landing-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.22);
+    color: var(--text-primary);
+}
+
+/* Variante grande para el hero */
+.landing-btn-lg {
+    padding: 12px 28px;
+    font-size: 14px;
+    border-radius: 10px;
+}
+
+/* ── Hero ────────────────────────────────────────────────────────────── */
+.landing-hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 56px 24px 48px;
+    gap: 0;
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.landing-hero-logo {
+    margin-bottom: 28px;
+}
+
+.landing-hero-logo-img {
+    height: 130px;
+    width: auto;
+    object-fit: contain;
+    mix-blend-mode: screen;
+}
+
+.landing-hero-title {
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    margin: 0 0 16px;
+}
+
+.landing-accent {
+    color: var(--accent-primary);
+}
+
+.landing-hero-subtitle {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 480px;
+    margin: 0 0 36px;
+}
+
+.landing-hero-cta-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 52px;
+}
+
+/* ── Feature cards ───────────────────────────────────────────────────── */
+.landing-cards {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+
+.landing-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 14px 18px;
+    flex: 1 1 170px;
+    min-width: 160px;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.landing-card:hover {
+    border-color: rgba(240, 21, 160, 0.25);
+    background: rgba(240, 21, 160, 0.04);
+}
+
+.landing-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: rgba(240, 21, 160, 0.12);
+    color: var(--accent-primary);
+    flex-shrink: 0;
+}
+
+.landing-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.landing-card-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────── */
+.landing-footer {
+    padding: 14px 24px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .landing-hero-title {
+        font-size: 28px;
+    }
+
+    .landing-header-nav .landing-btn-ghost {
+        display: none; /* en móvil solo mostramos el CTA en el header */
+    }
+}
