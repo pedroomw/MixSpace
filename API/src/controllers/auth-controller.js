@@ -120,6 +120,22 @@ class AuthController {
             return res.status(500).json({ error: err.message || 'Error al obtener el perfil' })
         }
     }
+
+    updateMe = async (req, res) => {
+        const userID = req.user.userId
+        try {
+            const { username, country, newPassword } = req.body
+            if (!username && !country && !newPassword) {
+                return res.status(400).json({ error: 'No se proporcionaron campos para actualizar' })
+            }
+            await authService.updateMyUser(userID, { username, country, newPassword })
+            const updated = await authService.getMyUser(userID)
+            return res.status(200).json(updated)
+        } catch (err) {
+            console.log('Error en updateMe: ' + err.message)
+            return res.status(500).json({ error: err.message || 'Error al actualizar el perfil' })
+        }
+    }
 }
 
 export default AuthController

@@ -43,9 +43,23 @@ class AuthRepository {
         }
 
         getUserFromID = async (id) => {
-            const { data, error } = await supabaseAuth.from('Users').select('id, email, created_at').eq('id', id).single()
+            const { data, error } = await supabaseAuth.from('Users').select('id, email, username, country, created_at').eq('id', id).single()
             if (error) throw error
             return data
+        }
+
+        updateUser = async (id, { username, country }) => {
+            const updates = {}
+            if (username !== undefined) updates.username = username
+            if (country  !== undefined) updates.country  = country
+            if (Object.keys(updates).length === 0) return
+            const { error } = await supabaseAuth.from('Users').update(updates).eq('id', id)
+            if (error) throw error
+        }
+
+        updatePassword = async (id, newPassword) => {
+            const { error } = await supabaseAuth.auth.admin.updateUserById(id, { password: newPassword })
+            if (error) throw error
         }
 
         saveRefreshToken = async (userId, refreshToken) => {

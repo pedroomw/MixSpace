@@ -86,6 +86,25 @@ class AuthService {
         const user = await authRepository.getUserFromID(userID)
         return user
     }
+
+    /**
+     * Update the user's profile (username, country) and/or password.
+     * @param {string} userId
+     * @param {{ username?: string, country?: string, newPassword?: string }} updates
+     */
+    updateMyUser = async (userId, updates) => {
+        const { username, country, newPassword } = updates
+
+        // Update profile fields in Users table
+        if (username !== undefined || country !== undefined) {
+            await authRepository.updateUser(userId, { username, country })
+        }
+
+        // Update password via Supabase admin
+        if (newPassword) {
+            await authRepository.updatePassword(userId, newPassword)
+        }
+    }
 }
 
 export default AuthService

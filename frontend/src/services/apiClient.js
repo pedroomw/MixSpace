@@ -282,6 +282,25 @@ export async function getMe() {
 }
 
 /**
+ * Update the authenticated user's profile and/or password.
+ * @param {{ username?: string, country?: string, newPassword?: string }} updates
+ * @returns {Promise<{ok: boolean, user?: Object, error?: string}>}
+ */
+export async function updateMe(updates) {
+  try {
+    const response = await apiClient.patch('/auth/me', updates);
+    return { ok: true, user: response.data };
+  } catch (error) {
+    let errorMessage = 'No se pudo actualizar el perfil';
+    if (error.code === 'ECONNREFUSED')         errorMessage = 'No se pudo conectar con el servidor';
+    else if (error.response?.status === 401)   errorMessage = 'Sesión expirada. Volvé a iniciar sesión';
+    else if (error.response?.status === 400)   errorMessage = error.response.data?.error || 'Datos inválidos';
+    else if (error.response)                   errorMessage = error.response.data?.error || errorMessage;
+    return { ok: false, error: errorMessage };
+  }
+}
+
+/**
  * Update the visibility (public/private) of a project.
  * @param {string|number} id
  * @param {boolean} isPublic

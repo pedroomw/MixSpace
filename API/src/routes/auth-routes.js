@@ -15,5 +15,6 @@ router.post('/plugin-session/:sessionId/resolve', authController.resolverSesionP
 router.get('/plugin-session/:sessionId', authController.consultarSesionPlugin)
 
 router.get('/me', authMiddleware, authController.getMe)
+router.patch('/me', authMiddleware, authController.updateMe)
 
 export default router

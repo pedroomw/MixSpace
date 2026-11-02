@@ -98,6 +98,10 @@ function App() {
     setAuthView(null); // vuelve a la landing
   };
 
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
   const handleLoginSuccess = async (u) => {
     // Enrich the user object with server profile data (id, created_at)
     const result = await getMe();
@@ -140,6 +144,7 @@ function App() {
 
   // Derive display name for the hero
   const heroName = (() => {
+    if (user?.username) return user.username;
     const email = user?.email || '';
     if (email.includes('@')) return email.split('@')[0];
     return email || 'there';
@@ -170,13 +175,14 @@ function App() {
       <LandingPage
         onLogin={() => setAuthView('login')}
         onRegister={() => setAuthView('register')}
+        isPlugin={!!pluginSessionId}
       />
     );
   }
 
   return (
     <div className="app">
-      <Header user={user} onLogout={handleLogout} onGoHome={() => setSelectedProject(null)} />
+      <Header user={user} onLogout={handleLogout} onGoHome={() => setSelectedProject(null)} onUserUpdate={handleUserUpdate} />
 
       {pluginSessionStatus === 'resolving' && (
         <div className="plugin-banner resolving">Conectando con FL Studio…</div>

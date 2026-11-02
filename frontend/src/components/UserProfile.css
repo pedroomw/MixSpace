@@ -161,3 +161,145 @@
   border: 1px solid rgba(239, 68, 68, 0.2);
   margin-bottom: var(--spacing-sm);
 }
+
+/* ── Avatar name ─────────────────────────────────────────────────────────── */
+.profile-avatar-name {
+  margin: var(--spacing-sm) 0 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* ── Success message ─────────────────────────────────────────────────────── */
+.profile-success {
+  font-size: var(--font-size-sm);
+  color: #4ade80;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(74, 222, 128, 0.08);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* ── Edit button ─────────────────────────────────────────────────────────── */
+.profile-actions {
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.profile-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(240, 21, 160, 0.08);
+  border: 1px solid rgba(240, 21, 160, 0.25);
+  border-radius: var(--radius-md);
+  color: var(--accent-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  justify-content: center;
+}
+
+.profile-edit-btn:hover {
+  background: rgba(240, 21, 160, 0.14);
+  border-color: rgba(240, 21, 160, 0.45);
+}
+
+/* ── Edit form ───────────────────────────────────────────────────────────── */
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+  gap: var(--spacing-xs);
+}
+
+.profile-edit-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profile-edit-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-top: var(--spacing-sm);
+}
+
+.profile-edit-optional {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.profile-edit-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-input, rgba(255,255,255,0.06));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.profile-edit-input:focus {
+  border-color: rgba(240, 21, 160, 0.5);
+}
+
+.profile-edit-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ── Edit form action buttons ────────────────────────────────────────────── */
+.profile-edit-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.profile-edit-cancel-btn,
+.profile-edit-save-btn {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.profile-edit-cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+}
+
+.profile-edit-cancel-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.profile-edit-save-btn {
+  background: var(--accent-primary, #f015a0);
+  border: none;
+  color: #fff;
+}
+
+.profile-edit-save-btn:hover:not(:disabled) {
+  background: var(--accent-hover, #c8108a);
+}
+
+.profile-edit-cancel-btn:disabled,
+.profile-edit-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
