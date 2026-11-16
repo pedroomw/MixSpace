@@ -6,7 +6,7 @@ import { refreshAccessToken } from '../api/auth';
 // Axios instance
 // ─────────────────────────────────────────────────────────────────────────────
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 60000,
   headers: { Accept: 'application/json' },
 });
@@ -223,7 +223,7 @@ export async function downloadVersion(id, filename) {
   try {
     const { accessToken } = getTokens();
 
-    const response = await fetch(`http://localhost:3000/versions/download/${id}`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/versions/download/${id}`, {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     });
 
