@@ -11,12 +11,18 @@ const FRONT_PORT = process.env.FRONTEND_PORT || 5173
 
 app.use(express.json())
 
+const ALLOWED_ORIGINS = [
+  /^http:\/\/localhost(:\d+)?$/,
+  'https://mix-space-lovat.vercel.app',
+];
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, Postman, mobile apps, etc.)
     if (!origin) return callback(null, true);
-    // Allow any localhost port in development
-    if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true);
+    const allowed = ALLOWED_ORIGINS.some((o) =>
+      o instanceof RegExp ? o.test(origin) : o === origin
+    );
+    if (allowed) return callback(null, true);
     callback(new Error(`CORS: origin not allowed — ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
